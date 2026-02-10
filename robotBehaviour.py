@@ -86,6 +86,7 @@ class GoToLoc(py_trees.composites.Sequence):
     def initialise(self):
         self.remove_all_children()
         self.createPlan()
+        self.current_child=self.children[0]
 
     def createPlan(self):
         steps = []
