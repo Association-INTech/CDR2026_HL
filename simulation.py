@@ -55,6 +55,9 @@ class Robot(Rectangle):
             self.height = 310
 
         self.eaten = []
+
+        self.move_remaining = 0
+
         super().__init__(self.x,self.y,self.width,self.height,self.color,self.angle,self.speed)
 
 
@@ -75,6 +78,32 @@ class Robot(Rectangle):
         
         for i in collide:
             groupList[i].move(dx,dy)
+
+    def start_move(self, distance):
+        self.move_remaining = distance
+
+    def update_move(self, dt, groupList=[]):
+        if self.move_remaining == 0:
+            return
+
+        step = self.speed * dt
+
+        # stop exactly at target distance
+        if abs(step) > abs(self.move_remaining):
+            step = self.move_remaining
+
+        dx = step * math.cos(math.radians(self.angle))
+        dy = step * math.sin(math.radians(self.angle))
+
+        self.x += dx
+        self.y += dy
+        self.move_remaining -= step
+
+        print(f"Step: {step}")
+
+        collide = self.collidelistallNutBoxGroup(groupList)
+        for i in collide:
+            groupList[i].move(dx, dy)
 
     def rotate(self, rotateAngle):
         self.angle=(self.angle+rotateAngle) % 360
@@ -152,7 +181,7 @@ class NutBoxGroup():
 
 
 class Simulation:
-    def __init__(self, scale):
+    def __init__(self, scale, auto_start=True):
         self.running = True
         self.width = 3000
         self.height = 2000
@@ -251,9 +280,16 @@ class Simulation:
             NutBoxGroup(1750, 1125, self.blue, self.yellow, angle=90),
             NutBoxGroup(1800, 1750, self.blue, self.yellow, angle=90),
         ]
-        self.loop()
+        if auto_start:
+            self.loop()
 
-
+    def tick(self):
+        # One frame - returns control immediately
+        self.dt = self.fps.tick(60) / 1000  # seconds per frame
+        self.events()
+        self.update()
+        self.render()
+        return self.running
 
     def loop(self):
         while self.running:
@@ -276,7 +312,8 @@ class Simulation:
 
 
     def update(self):
-        self.robot.handle_input(self.dt,self.nutBoxGroups)
+        #self.robot.handle_input(self.dt,self.nutBoxGroups)
+        self.robot.update_move(self.dt, self.nutBoxGroups)
         #self.robot.clamp(self.width, self.height)
 
         #self.nutBox1.handle_input(self.dt)

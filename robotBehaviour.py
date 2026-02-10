@@ -1,16 +1,10 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-
 import random
 import py_trees
+import time
 
-from communication import Comm
-
-class Position:
-    def __init__(self, x, y, angle):
-        self.x=x
-        self.y=y
-        self.angle=angle
+from position import Position
+#from communication import Comm
+from communication import CommSim as Comm
 
 class Robot:
     "Gère toutes les actions tout relatif au robot"
@@ -19,6 +13,8 @@ class Robot:
         self.comm=Comm()
         self.actions=[]
         self.__countID=0 #variable de classe pour avoir un id
+        self.start_time = time.time()
+    
 
     def getID(self):
         self.__countID+=1
@@ -55,23 +51,23 @@ class Robot:
 class GetLoc(py_trees.behaviour.Behaviour):
     """Obtient le prochain endroit"""
 
-    def __init__(self, name: str) -> None:
+    def __init__(self, name: str):
         super().__init__(name)
         self.blackboard = self.attach_blackboard_client(name="GetLoc")
         self.blackboard.register_key(key="loc", access=py_trees.common.Access.WRITE)
 
-    def setup(self, **kwargs: typing.Any) -> None:
+    def setup(self):
         self.queue = [
             Position(
-                random.randint(0, 100),
-                random.randint(1, 100),
+                random.randint(0, 3000),
+                random.randint(1, 2000),
                 random.uniform(0, 360)
             )
             for _ in range(3)
         ]
 
 
-    def update(self) -> py_trees.common.Status:
+    def update(self):
         if len(self.queue)==0:
             return py_trees.common.Status.FAILURE
         self.blackboard.loc=self.queue.pop(0)
@@ -81,7 +77,7 @@ class GetLoc(py_trees.behaviour.Behaviour):
 class GoToLoc(py_trees.composites.Sequence):
     """Va à l'endroit choisi"""
 
-    def __init__(self, name: str) -> None:
+    def __init__(self, name: str):
         super().__init__(name, memory=True)
         self.blackboard = self.attach_blackboard_client(name="GoToLoc")
         self.blackboard.register_key(key="loc", access=py_trees.common.Access.READ)
@@ -106,31 +102,29 @@ class GoToLoc(py_trees.composites.Sequence):
                 value=value
             ))
 
-        if dy != 0:
-            target_angle = 90 if dy > 0 else -90
-            distance = abs(dy)
+        target_angle = 90 if dy > 0 else -90
+        distance = abs(dy)
 
-            rotate = target_angle - currentPos.angle
-            rotate = (rotate + 180) % 360 - 180
+        rotate = target_angle - currentPos.angle
+        rotate = (rotate + 180) % 360 - 180
 
-            if rotate != 0:
-                addStep(Rotate, rotate)
-                currentPos.angle = target_angle
+        if rotate != 0:
+            addStep(Rotate, rotate)
+            currentPos.angle = target_angle
 
-            addStep(Move, distance)
+        addStep(Move, distance)
 
-        if dx != 0:
-            target_angle = 0 if dx > 0 else 180
-            distance = abs(dx)
+        target_angle = 0 if dx > 0 else 180
+        distance = abs(dx)
 
-            rotate = target_angle - currentPos.angle
-            rotate = (rotate + 180) % 360 - 180
+        rotate = target_angle - currentPos.angle
+        rotate = (rotate + 180) % 360 - 180
 
-            if rotate != 0:
-                addStep(Rotate, rotate)
-                currentPos.angle = target_angle
+        if rotate != 0:
+            addStep(Rotate, rotate)
+            currentPos.angle = target_angle
 
-            addStep(Move, distance)
+        addStep(Move, distance)
 
         self.blackboard.plan = steps
         self.add_children(stepsBT)      
@@ -143,9 +137,12 @@ class Rotate(py_trees.behaviour.Behaviour):
         self.angle = value
 
     def initialise(self):
-        robot.start_rotate(self.angle)
+        self.start_time=time.time()
+        self.id=robot.start_rotate(self.angle)
 
-    def update(self) -> py_trees.common.Status:
+    def update(self):
+        if time.time() - self.start_time > 10:
+            return py_trees.common.Status.FAILURE
         if robot.is_moving():
             return py_trees.common.Status.RUNNING
         return py_trees.common.Status.SUCCESS    
@@ -158,20 +155,21 @@ class Move(py_trees.behaviour.Behaviour):
         self.distance = value
 
     def initialise(self):
-        robot.start_move(self.distance)
+        self.start_time=time.time()
+        self.id=robot.start_move(self.distance)
 
-    def update(self) -> py_trees.common.Status:
+    def update(self):
+        if time.time() - self.start_time > 10:
+            return py_trees.common.Status.FAILURE
         if robot.is_moving():
             return py_trees.common.Status.RUNNING
         return py_trees.common.Status.SUCCESS
 
-robot=Robot(Position(0,0,0))
 
 
-
-
-#Créer un arbre de comportement très basque pour tester
+#Créer un arbre de comportement très basique pour tester
 if __name__ == "__main__":
+    robot=Robot(Position(0,0,0))
     root = py_trees.composites.Sequence("MainSequence", memory=True)
     getA = GetLoc(name="movetoA")
     movetoA = GoToLoc(name="movetoA")
@@ -184,6 +182,16 @@ if __name__ == "__main__":
     print(py_trees.display.unicode_tree(root=root))
     behaviour_tree.setup(timeout=15)
 
+    
+    
+    def tick_simulation(tree: py_trees.trees.BehaviourTree) -> None:
+        """Update simulation before each behavior tree tick."""
+
+        if not robot.comm.simulation.tick():
+            # Simulation was closed, interrupt the behavior tree
+            tree.interrupt()
+
+
     def print_tree(tree: py_trees.trees.BehaviourTree) -> None:
         """Print the behaviour tree and its current status."""
         print(py_trees.display.unicode_tree(root=tree.root, show_status=True))
@@ -194,8 +202,8 @@ if __name__ == "__main__":
         behaviour_tree.tick_tock(
             period_ms=500,
             number_of_iterations=py_trees.trees.CONTINUOUS_TICK_TOCK,
-            pre_tick_handler=None,
-            post_tick_handler=print_tree,
+            pre_tick_handler=tick_simulation,
+            post_tick_handler=print_tree
         )
     except KeyboardInterrupt:
         behaviour_tree.interrupt()

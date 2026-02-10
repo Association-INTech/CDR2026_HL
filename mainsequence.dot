@@ -1,0 +1,26 @@
+digraph pastafarianism {
+ordering=out;
+graph [fontname="times-roman"];
+node [fontname="times-roman"];
+edge [fontname="times-roman"];
+MainSequence [label="Ⓜ MainSequence", shape=box, style=filled, fillcolor=orange, fontsize=9, fontcolor=black];
+GetA [label=GetA, shape=ellipse, style=filled, fillcolor=gray, fontsize=9, fontcolor=black];
+MainSequence -> GetA;
+GoA [label="Ⓜ GoA", shape=box, style=filled, fillcolor=orange, fontsize=9, fontcolor=black];
+MainSequence -> GoA;
+GoA -> "/plan" [color=blue, constraint=false, weight=0];
+GoToLoc -> "/plan" [color=blue, constraint=false, weight=0];
+"/loc" -> GoA [color=green, constraint=false, weight=0];
+"/loc" -> GoToLoc [color=green, constraint=false, weight=0];
+GetA -> "/loc" [color=blue, constraint=false, weight=0];
+GetLoc -> "/loc" [color=blue, constraint=false, weight=0];
+subgraph Blackboard {
+id=Blackboard;
+label=Blackboard;
+rank=sink;
+GetLoc [label=GetLoc, shape=ellipse, style=filled, color=blue, fillcolor=gray, fontsize=7, fontcolor=blue];
+GoToLoc [label=GoToLoc, shape=ellipse, style=filled, color=blue, fillcolor=gray, fontsize=7, fontcolor=blue];
+"/plan" [label="/plan: -", shape=box, style=filled, color=blue, fillcolor=white, fontsize=8, fontcolor=blue, width=0, height=0, fixedsize=false];
+"/loc" [label="/loc: -", shape=box, style=filled, color=blue, fillcolor=white, fontsize=8, fontcolor=blue, width=0, height=0, fixedsize=false];
+}
+}
