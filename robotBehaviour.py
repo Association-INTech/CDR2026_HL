@@ -74,19 +74,19 @@ class GetLoc(py_trees.behaviour.Behaviour):
         return py_trees.common.Status.SUCCESS
 
 
-class GoToLoc(py_trees.composites.Sequence):
+class GoToLoc(py_trees.decorators.PassThrough):
     """Va à l'endroit choisi"""
 
     def __init__(self, name: str):
-        super().__init__(name, memory=True)
+        self.main_sequence = py_trees.composites.Sequence("MainSequence", True)
+        super().__init__(name,self.main_sequence)
         self.blackboard = self.attach_blackboard_client(name="GoToLoc")
         self.blackboard.register_key(key="loc", access=py_trees.common.Access.READ)
         self.blackboard.register_key(key="plan", access=py_trees.common.Access.WRITE)
 
     def initialise(self):
-        self.remove_all_children()
         self.createPlan()
-        self.current_child=self.children[0]
+        #self.current_child=self.children[0]
 
     def createPlan(self):
         steps = []
@@ -128,7 +128,7 @@ class GoToLoc(py_trees.composites.Sequence):
         addStep(Move, distance)
 
         self.blackboard.plan = steps
-        self.add_children(stepsBT)      
+        self.main_sequence.add_children(stepsBT)      
 
 class Rotate(py_trees.behaviour.Behaviour):
     """Rotate robot by a given angle"""
@@ -167,7 +167,6 @@ class Move(py_trees.behaviour.Behaviour):
         return py_trees.common.Status.SUCCESS
 
 
-
 #Créer un arbre de comportement très basique pour tester
 if __name__ == "__main__":
     robot=Robot(Position(0,0,0))
@@ -201,7 +200,7 @@ if __name__ == "__main__":
 
     try:
         behaviour_tree.tick_tock(
-            period_ms=500,
+            period_ms=100,
             number_of_iterations=py_trees.trees.CONTINUOUS_TICK_TOCK,
             pre_tick_handler=tick_simulation,
             post_tick_handler=print_tree
