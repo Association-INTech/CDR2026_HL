@@ -1,5 +1,5 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
+from simulation import Simulation
+from position import Position
 
 class Comm:
     """Classe qui gère la communication avec le LL, on ajoutera les messages CAN ici"""
@@ -12,3 +12,17 @@ class Comm:
         return None
     def get_feedback(self,id):
         return True
+
+class CommSim:
+    """Classe qui gère la communication avec le LL, simulé avec pygame"""
+    def __init__(self):
+        self.simulation = Simulation(0.5, auto_start=False)
+    def start_move(self,dist):
+        self.simulation.robot.start_move(dist)
+    def start_rotate(self, angle):
+        self.simulation.robot.rotate(angle)
+    def get_position(self):
+        return Position(self.simulation.robot.x,self.simulation.robot.y,self.simulation.robot.angle)
+    def get_feedback(self,id):
+        print(f"Feedback {id}:{self.simulation.robot.move_remaining}")
+        return (self.simulation.robot.move_remaining == 0)
