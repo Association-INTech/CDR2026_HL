@@ -65,6 +65,7 @@ class GetLoc(py_trees.behaviour.Behaviour):
             )
             for _ in range(3)
         ]
+        self.queue.append(Position(0,0,0))
 
 
     def update(self):
@@ -85,6 +86,7 @@ class GoToLoc(py_trees.decorators.PassThrough):
         self.blackboard.register_key(key="plan", access=py_trees.common.Access.WRITE)
 
     def initialise(self):
+        self.main_sequence.remove_all_children()
         self.createPlan()
         #self.current_child=self.children[0]
 
