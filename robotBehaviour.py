@@ -55,8 +55,6 @@ class GetLoc(py_trees.behaviour.Behaviour):
         super().__init__(name)
         self.blackboard = self.attach_blackboard_client(name="GetLoc")
         self.blackboard.register_key(key="loc", access=py_trees.common.Access.WRITE)
-
-    def setup(self):
         self.queue = [
             Position(
                 random.randint(0, 3000),
@@ -79,7 +77,7 @@ class GoToLoc(py_trees.decorators.PassThrough):
     """Va à l'endroit choisi"""
 
     def __init__(self, name: str):
-        self.main_sequence = py_trees.composites.Sequence("MainSequence", True)
+        self.main_sequence = py_trees.composites.Sequence(name+"MainSequence", True)
         super().__init__(name,self.main_sequence)
         self.blackboard = self.attach_blackboard_client(name="GoToLoc")
         self.blackboard.register_key(key="loc", access=py_trees.common.Access.READ)
@@ -148,7 +146,7 @@ class Rotate(py_trees.behaviour.Behaviour):
             return py_trees.common.Status.FAILURE
         if robot.is_moving():
             return py_trees.common.Status.RUNNING
-        return py_trees.common.Status.SUCCESS    
+        return py_trees.common.Status.SUCCESS        
                
 class Move(py_trees.behaviour.Behaviour):
     """Move robot forward by a given distance"""
@@ -168,6 +166,21 @@ class Move(py_trees.behaviour.Behaviour):
             return py_trees.common.Status.RUNNING
         return py_trees.common.Status.SUCCESS
 
+class ProcedurePushNoisette(py_trees.decorators.PassThrough):
+    def __init__(self, name: str):
+        self.main_sequence = py_trees.composites.Sequence(name+"MainSequence", True)
+        super().__init__(name,self.main_sequence)
+        self.main_sequence.add_child(GetNoisette)
+        self.main_sequence.add_child(GoToLoc)
+
+
+class GetNoisette(GetLoc):
+    def __init__(self, name: str):
+        super().__init__(name)
+        self.noisettes=[Position(100, 1500,0), Position(1050, 1125,90),Position(1000, 1750,90),Position(2750, 700,0),Position(2750, 1500,0),Position(1750, 1125,90),Position(1800, 1750,90)]
+        self.queue=self.noisettes
+
+
 
 #Créer un arbre de comportement très basique pour tester
 if __name__ == "__main__":
@@ -177,7 +190,7 @@ if __name__ == "__main__":
     movetoA = GoToLoc(name="movetoA")
 
     root.add_children([
-        GetLoc("GetA"),
+        GetNoisette("GetA"),
         GoToLoc("GoA"),
     ])
     behaviour_tree = py_trees.trees.BehaviourTree(root=root)
