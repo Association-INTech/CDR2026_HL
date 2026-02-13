@@ -47,12 +47,16 @@ class Robot(Rectangle):
         self.color = color
         self.angle=angle
         self.speed=speed
+        
+        self.REF_WIDTH = 310
+        self.REF_HEIGHT = 175
+
         if self.angle==0 or self.angle==180:
-            self.width = 310
-            self.height = 175
+            self.width = self.REF_WIDTH
+            self.height = self.REF_HEIGHT
         else:
-            self.width = 175
-            self.height = 310
+            self.width = self.REF_HEIGHT
+            self.height = self.REF_WIDTH
 
         self.eaten = []
 
@@ -107,10 +111,15 @@ class Robot(Rectangle):
 
     def rotate(self, rotateAngle):
         self.angle=(self.angle+rotateAngle) % 360
+        
+        center_x = self.x + self.width // 2
+        center_y = self.y + self.height // 2
 
-        self.x = self.x + self.height//2 - self.width//2
-        self.y = self.y + self.width//2 - self.height//2
-        self.height,self.width=self.width,self.height
+        if rotateAngle % 180 != 0:
+            self.width, self.height = self.height, self.width
+
+        self.x = center_x - self.width//2
+        self.y = center_y - self.height//2
 
     def updateRect(self):
         self.rect=pygame.Rect(self.x,self.y,self.height,self.width)

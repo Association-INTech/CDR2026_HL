@@ -14,6 +14,7 @@ class Robot:
         self.actions=[]
         self.__countID=0 #variable de classe pour avoir un id
         self.start_time = time.time()
+        self.logger = py_trees.logging.Logger("Robot")
     
 
     def getID(self):
@@ -26,18 +27,21 @@ class Robot:
     
     def update(self):
         self.pos=self.comm.get_position()
+        self.logger.debug(f"Pos: x {self.pos.x}, y {self.pos.y}, a {self.pos.angle}")
         for id in self.actions:
             if self.comm.get_feedback(id):
                 self.actions.remove(id)
 
     def start_move(self,dist):
         id=self.getID()
+        self.update()
         self.comm.start_move(dist)
         self.actions.append(id)
         return id
 
     def start_rotate(self, angle):
         id=self.getID()
+        self.update()
         self.comm.start_rotate(angle)
         self.actions.append(id)
         return id
@@ -126,6 +130,14 @@ class GoToLoc(py_trees.decorators.PassThrough):
             currentPos.angle = target_angle
 
         addStep(Move, distance)
+        
+        target_angle=self.blackboard.loc.angle
+        rotate = target_angle - currentPos.angle
+        rotate = (rotate + 180) % 360 - 180
+
+        if rotate != 0:
+            addStep(Rotate, rotate)
+            currentPos.angle = target_angle
 
         self.blackboard.plan = steps
         self.main_sequence.add_children(stepsBT)      
@@ -170,15 +182,21 @@ class ProcedurePushNoisette(py_trees.decorators.PassThrough):
     def __init__(self, name: str):
         self.main_sequence = py_trees.composites.Sequence(name+"MainSequence", True)
         super().__init__(name,self.main_sequence)
-        self.main_sequence.add_child(GetNoisette)
-        self.main_sequence.add_child(GoToLoc)
+        self.main_sequence.add_child(GetNoisette(name="get_Noisette_location"))
+        self.main_sequence.add_child(GoToLoc(name="go_to_noisette"))
+        self.main_sequence.add_child(Move(name="push_noisette",value=200))
+        self.main_sequence.add_child(Rotate(name="U_turn",value=180))
+        self.main_sequence.add_child(Move(name="go_back",value=200))
+
 
 
 class GetNoisette(GetLoc):
     def __init__(self, name: str):
         super().__init__(name)
-        self.noisettes=[Position(100, 1500,0), Position(1050, 1125,90),Position(1000, 1750,90),Position(2750, 700,0),Position(2750, 1500,0),Position(1750, 1125,90),Position(1800, 1750,90)]
-        self.queue=self.noisettes
+        self.noisettes=[Position(100, 700,90),Position(100, 1500,90), Position(1050, 1125,0),Position(1000, 1750,0),Position(2750, 700,90),Position(2750, 1500,90),Position(1750, 1125,0),Position(1800, 1750,0)]
+        #self.queue=self.noisettes
+        
+        self.queue=[Position(100, 700,90)]
 
 
 
@@ -186,12 +204,12 @@ class GetNoisette(GetLoc):
 if __name__ == "__main__":
     robot=Robot(Position(0,0,0))
     root = py_trees.composites.Sequence("MainSequence", memory=True)
-    getA = GetLoc(name="movetoA")
-    movetoA = GoToLoc(name="movetoA")
+    #getA = GetLoc(name="movetoA")
+    #movetoA = GoToLoc(name="movetoA")
+    procedure = ProcedurePushNoisette(name="main")
 
     root.add_children([
-        GetNoisette("GetA"),
-        GoToLoc("GoA"),
+        procedure
     ])
     behaviour_tree = py_trees.trees.BehaviourTree(root=root)
     print(py_trees.display.unicode_tree(root=root))
