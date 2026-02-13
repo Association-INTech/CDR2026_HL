@@ -15,7 +15,7 @@ class CommunicationCan(Communication):
         self.bus.send("rotate", angle)
 
 
-    def position(self, ):
+    def position(self):
         return self.bus.request("position")
     
 
