@@ -4,20 +4,32 @@ import heapq
 class Graph:
     def __init__(self,size):
         self.size = size
-        self.adjacency_matrix = [[0 for i in range(self.size)] for i in range(self.size)]
+        #self.adjacency_matrix = [[0 for i in range(self.size)] for i in range(self.size)]
+        self.adjacency_list = [[]for i in range(self.size)]
+        self.weights={}
     
     def add_edge(self,a,b,weight):
-        self.adjacency_matrix[a][b]=weight
+        #self.adjacency_matrix[a][b]=weight
+        self.adjacency_list[a].append(b)
+        self.weights[(a,b)]=weight
     
     def get_weight(self,a,b):
-        return self.adjacency_matrix[a][b]
+        #return self.adjacency_matrix[a][b]
+        if (a,b) in self.weights:
+            return self.weights[(a,b)]
+        else:
+            return float("inf")
+
 
     def get_neighbors(self, node):
+        """
         res=[]
         for i in range(self.size):
             if self.get_weight(node,i)!=0:
                 res.append((i,self.get_weight(node,i)))
         return res
+        """
+        return [(neighbor,self.weights[(node,neighbor)]) for neighbor in self.adjacency_list[node]]    
     def A_star(self, start, goal, heuristic):
         
         heap = [(0,start)]
@@ -124,10 +136,10 @@ class GridGraph(Graph):
 
 
 if __name__ == "__main__":
-    test=GridGraph(200,300)
+    test=GridGraph(2000,3000)
     print("Created Graph")
     #print(test.adjency_maxtrix)
     #print(test.getNodeIDFromPos(Position(0,0,0)),test.getNodeIDFromPos(Position(0,0,180)))
     print(test.get_weight(test.getNodeIDFromPos(Position(0,0,0)),test.getNodeIDFromPos(Position(0,0,90))))
-    print(test.getShortestPath(test.getNodeIDFromPos(Position(0,0,0)),test.getNodeIDFromPos(Position(0,20,90))))
+    print(test.getShortestPath(test.getNodeIDFromPos(Position(0,0,0)),test.getNodeIDFromPos(Position(100,20,90))))
     
