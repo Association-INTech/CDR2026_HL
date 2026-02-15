@@ -139,8 +139,10 @@ class GridGraph(Graph):
 
     def getNodeIDFromPos(self,pos):
         rot=round((pos.angle%360)*self.NbRotations/360)
-        return self.getNodeID(pos.x//self.scale,pos.y//self.scale,rot)
-
+        x = int(pos.x // self.scale)
+        y = int(pos.y // self.scale)
+        return self.getNodeID(x, y, rot)
+    
     def getPos(self,id):
         y = id // (self.NbRotations * self.width)
         yr = id % (self.NbRotations * self.width)
