@@ -18,6 +18,7 @@ class Robot:
         self.start_time = time.time()
         self.logger = py_trees.logging.Logger("Robot")
         self.graph=GridGraph(3000,2000,scale=10)
+        self.graph.addForbidden(800,1500,0,1500)
     
 
     def getID(self):
@@ -248,7 +249,7 @@ class GetNoisette(GetLoc):
         self.noisettes=[Position(100, 700,90),Position(100, 1500,90), Position(1050, 1125,0),Position(1000, 1750,0),Position(2750, 700,90),Position(2750, 1500,90),Position(1750, 1125,0),Position(1800, 1750,0)]
         #self.queue=self.noisettes
         
-        self.queue=[Position(1000, 700,90)]
+        self.queue=[Position(2000, 50,-90)]
 
 
 

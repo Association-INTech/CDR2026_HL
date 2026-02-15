@@ -1,5 +1,6 @@
 from position import Position
 import heapq
+import math
 
 class Graph:
     def __init__(self,size):
@@ -10,7 +11,10 @@ class Graph:
     
     def add_edge(self,a,b,weight):
         #self.adjacency_matrix[a][b]=weight
-        self.adjacency_list[a].append(b)
+        if not (isinstance(a, int) and isinstance(b, int)):
+            raise ValueError(f"Cannot add edge: must be an integer node ID, got {a}, {b}")
+        if not b in self.adjacency_list[a]:
+            self.adjacency_list[a].append(b)
         self.weights[(a,b)]=weight
     
     def get_weight(self,a,b):
@@ -54,6 +58,7 @@ class Graph:
 
             visited[current]=True
             if current == goal:
+                print(g[parent[goal]])
                 return parent 
             
             for neighbor, weight in self.get_neighbors(current):
@@ -62,7 +67,7 @@ class Graph:
                 g_neigbor = g[current] + weight
                 if g_neigbor < g[neighbor]:
                     g[neighbor]=g_neigbor
-                    f_neighbor=g[neighbor]+heuristic(start,neighbor)
+                    f_neighbor=g[neighbor]+heuristic(neighbor,goal)
                     parent[neighbor]=current
                     heapq.heappush(heap, (f_neighbor, neighbor))
         
@@ -83,8 +88,8 @@ class GridGraph(Graph):
         self.setupGrid()
     
     def setupGrid(self):
-        forward_speed=1
-        backward_speed=2
+        forward_speed=1*self.scale
+        backward_speed=2*self.scale
         rotation_speed=3
         for x in range(self.width):
             for y in range(self.height):
@@ -158,7 +163,7 @@ class GridGraph(Graph):
         def heuristic(a,b):
             posa=self.getPos(a)
             posb=self.getPos(b)
-            return (posb.x-posa.x)**2+(posb.y-posa.y)**2
+            return math.sqrt((posb.x-posa.x)**2+(posb.y-posa.y)**2)
 
         parent=self.A_star(start,goal,heuristic)
 
@@ -172,12 +177,28 @@ class GridGraph(Graph):
         
     def getShortestPathPos(self,startPos,goalPos):
         return [self.getPos(id) for id in self.getShortestPath(self.getNodeIDFromPos(startPos),self.getNodeIDFromPos(goalPos))]
+    
+    def addForbidden(self,xmin,xmax,ymin,ymax):
+        forbidden_nodes = set()
+        for x in range (xmin,xmax,self.scale):
+            for y in range (ymin,ymax,self.scale):
+                for angle in range(self.NbRotations):
+                    angle_degrees = angle * 360 / self.NbRotations
+                    current = self.getNodeIDFromPos(Position(x,y,angle_degrees))
+                    neighbors=self.get_neighbors(current)
+                    for neighbor,weight in neighbors:
+                        self.add_edge(current,neighbor,1000000)
 
 if __name__ == "__main__":
-    test=GridGraph(2000,3000,scale=10)
+    test=GridGraph(3000,2000,scale=10)
     print("Created Graph")
     #print(test.adjency_maxtrix)
     #print(test.getNodeIDFromPos(Position(0,0,0)),test.getNodeIDFromPos(Position(0,0,180)))
     print(test.get_weight(test.getNodeIDFromPos(Position(0,0,0)),test.getNodeIDFromPos(Position(0,0,90))))
-    print(test.getShortestPath(test.getNodeIDFromPos(Position(0,0,0)),test.getNodeIDFromPos(Position(1990,2990,90))))
+    print(test.get_weight(test.getNodeIDFromPos(Position(0,0,90)),test.getNodeIDFromPos(Position(0,0,0))))
+
+    test.addForbidden(500,1000,0,1000)
+    print(test.getShortestPath(test.getNodeIDFromPos(Position(0,100,0)),test.getNodeIDFromPos(Position(2000,100,90))))
+    print([f"{pos.x},{pos.y}" for pos in test.getShortestPathPos(Position(0,100,0),Position(2000,100,90))])
+
     
