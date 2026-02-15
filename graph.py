@@ -73,38 +73,72 @@ class Graph:
     
 
 class GridGraph(Graph):
-    def __init__(self,width,height):
-        self.width=width
-        self.height=height
+    def __init__(self,width,height,scale=1):
+        self.scale=scale
+        self.width=width//self.scale
+        self.height=height//self.scale
         self.NbRotations=4
         super().__init__(self.width*self.height*self.NbRotations+1)
         self.setupGrid()
     
     def setupGrid(self):
-        foward_speed=1
+        forward_speed=1
         backward_speed=2
         rotation_speed=3
         for x in range(self.width):
             for y in range(self.height):
                 for angle in range(self.NbRotations):
-                    self.add_edge(self.getNodeID(x,y,angle),self.getNodeID(x,y,(angle+1)%self.NbRotations),rotation_speed)
-                    self.add_edge(self.getNodeID(x,y,(angle+1)%self.NbRotations),self.getNodeID(x,y,(angle)%self.NbRotations),rotation_speed)
-
+                    self.add_edge(
+                        self.getNodeID(x,y,angle),
+                        self.getNodeID(x,y,(angle+1)%self.NbRotations),
+                        rotation_speed
+                        )
+                    self.add_edge(
+                        self.getNodeID(x,y,(angle+1)%self.NbRotations),
+                        self.getNodeID(x,y,(angle)%self.NbRotations),
+                        rotation_speed
+                        )
+                    
+                if x < self.width -1:
+                    self.add_edge(
+                        self.getNodeID(x, y, round((0 % 360) * self.NbRotations / 360)),
+                        self.getNodeID(x + 1, y, round((0 % 360) * self.NbRotations / 360)),
+                        forward_speed
+                        )
+                    
+                    self.add_edge(
+                        self.getNodeID(x + 1, y, round((180 % 360) * self.NbRotations / 360)),
+                        self.getNodeID(x, y, round((180 % 360) * self.NbRotations / 360)),
+                        backward_speed
+                        )
+                    
+                if y < self.height -1:
+                    self.add_edge(
+                        self.getNodeID(x, y, round((90 % 360) * self.NbRotations / 360)),
+                        self.getNodeID(x, y + 1, round((90 % 360) * self.NbRotations / 360)),
+                        forward_speed
+                        )
+                    self.add_edge(
+                        self.getNodeID(x, y + 1, round((270 % 360) * self.NbRotations / 360)),
+                        self.getNodeID(x, y, round((270 % 360) * self.NbRotations / 360)),
+                        backward_speed
+                        )
+        """
         for x in range(self.width-1):
             for y in range(self.height-1):
-                self.add_edge(self.getNodeIDFromPos(Position(x,y,0)),self.getNodeIDFromPos(Position(x+1,y,0)),foward_speed)
-                self.add_edge(self.getNodeIDFromPos(Position(x,y,90)),self.getNodeIDFromPos(Position(x,y+1,90)),foward_speed)
+                self.add_edge(self.getNodeIDFromPos(Position(x,y,0)),self.getNodeIDFromPos(Position(x+1,y,0)),forward_speed)
+                self.add_edge(self.getNodeIDFromPos(Position(x,y,90)),self.getNodeIDFromPos(Position(x,y+1,90)),forward_speed)
                 self.add_edge(self.getNodeIDFromPos(Position(x+1,y,180)),self.getNodeIDFromPos(Position(x,y,180)),backward_speed)
                 self.add_edge(self.getNodeIDFromPos(Position(x,y+1,270)),self.getNodeIDFromPos(Position(x,y,270)),backward_speed)
+        """    
 
-                    
     def getNodeID(self, x, y, rot):
         id=rot+x*self.NbRotations+y*self.NbRotations*self.width
         return id
 
     def getNodeIDFromPos(self,pos):
         rot=round((pos.angle%360)*self.NbRotations/360)
-        return self.getNodeID(pos.x,pos.y,rot)
+        return self.getNodeID(pos.x//self.scale,pos.y//self.scale,rot)
 
     def getPos(self,id):
         y = id // (self.NbRotations * self.width)
@@ -115,7 +149,7 @@ class GridGraph(Graph):
 
         angle = xr * 360 / self.NbRotations
 
-        return Position(x,y,angle)
+        return Position(x*self.scale,y*self.scale,angle)
 
     def getShortestPath(self,start,goal):
         def heuristic(a,b):
@@ -136,10 +170,10 @@ class GridGraph(Graph):
 
 
 if __name__ == "__main__":
-    test=GridGraph(2000,3000)
+    test=GridGraph(2000,3000,scale=10)
     print("Created Graph")
     #print(test.adjency_maxtrix)
     #print(test.getNodeIDFromPos(Position(0,0,0)),test.getNodeIDFromPos(Position(0,0,180)))
     print(test.get_weight(test.getNodeIDFromPos(Position(0,0,0)),test.getNodeIDFromPos(Position(0,0,90))))
-    print(test.getShortestPath(test.getNodeIDFromPos(Position(0,0,0)),test.getNodeIDFromPos(Position(100,20,90))))
+    print(test.getShortestPath(test.getNodeIDFromPos(Position(0,0,0)),test.getNodeIDFromPos(Position(1990,2990,90))))
     
