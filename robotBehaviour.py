@@ -171,10 +171,25 @@ class GoToLoc(py_trees.decorators.PassThrough):
                 print(f"Diff: {diff.x},{diff.y},{diff.angle}")
 
         path=robot.graph.getShortestPathPos(currentPos,targetPos)
+
+        raw_steps = []
+        prev_class =  None
+        total_value = 0
         for i in range(len(path)-1):
             step,value=getStep(path[i],path[i+1])
-            addStep(step,value)
+            raw_steps.append((step,value))
 
+            if prev_class==step:
+                total_value+=value
+            else:
+                if prev_class is not None:
+                    addStep(prev_class,total_value)
+                prev_class=step
+                total_value=value
+
+        if prev_class is not None:
+            addStep(prev_class,total_value)
+        
         self.blackboard.plan = steps
         self.main_sequence.add_children(stepsBT)      
 
