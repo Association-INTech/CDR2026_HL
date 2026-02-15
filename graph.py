@@ -29,7 +29,8 @@ class Graph:
                 res.append((i,self.get_weight(node,i)))
         return res
         """
-        return [(neighbor,self.weights[(node,neighbor)]) for neighbor in self.adjacency_list[node]]    
+        return [(neighbor,self.weights[(node,neighbor)]) for neighbor in self.adjacency_list[node]]
+    
     def A_star(self, start, goal, heuristic):
         
         heap = [(0,start)]
@@ -167,7 +168,8 @@ class GridGraph(Graph):
             path.insert(0,current)
         return path
         
-
+    def getShortestPathPos(self,startPos,goalPos):
+        return [self.getPos(id) for id in self.getShortestPath(self.getNodeIDFromPos(startPos),self.getNodeIDFromPos(goalPos))]
 
 if __name__ == "__main__":
     test=GridGraph(2000,3000,scale=10)

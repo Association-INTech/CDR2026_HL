@@ -6,6 +6,8 @@ from position import Position
 #from communication import Comm
 from communication import CommSim as Comm
 
+from graph import GridGraph
+
 class Robot:
     "Gère toutes les actions tout relatif au robot"
     def __init__(self, pos):
@@ -15,6 +17,7 @@ class Robot:
         self.__countID=0 #variable de classe pour avoir un id
         self.start_time = time.time()
         self.logger = py_trees.logging.Logger("Robot")
+        self.graph=GridGraph(3000,2000,scale=10)
     
 
     def getID(self):
@@ -89,7 +92,7 @@ class GoToLoc(py_trees.decorators.PassThrough):
 
     def initialise(self):
         self.main_sequence.remove_all_children()
-        self.createPlan()
+        self.createPlanGraph()
         #self.current_child=self.children[0]
 
     def createPlan(self):
@@ -141,6 +144,40 @@ class GoToLoc(py_trees.decorators.PassThrough):
 
         self.blackboard.plan = steps
         self.main_sequence.add_children(stepsBT)      
+
+    def createPlanGraph(self):
+        steps = []
+        stepsBT = []
+
+        currentPos = robot.getPos()
+        targetPos = Position(self.blackboard.loc.x,self.blackboard.loc.y,self.blackboard.loc.angle)
+
+        def addStep(step_class, value):
+            steps.append((step_class.__name__, value))
+            stepsBT.append(step_class(
+                name=f"{step_class.__name__}_{value}",
+                value=value
+            ))
+        
+        def getStep(posA,posB):
+            diff=posB.difference(posA)
+            if (diff.y==0 and diff.angle==0):
+                return (Move,abs(diff.x))
+            if (diff.x==0 and diff.angle==0):
+                return (Move,abs(diff.y))
+            if (diff.x==0 and diff.y==0):
+                return (Rotate,diff.angle)
+            else:
+                print(f"Diff: {diff.x},{diff.y},{diff.angle}")
+
+        path=robot.graph.getShortestPathPos(currentPos,targetPos)
+        for i in range(len(path)-1):
+            step,value=getStep(path[i],path[i+1])
+            addStep(step,value)
+
+        self.blackboard.plan = steps
+        self.main_sequence.add_children(stepsBT)      
+
 
 class Rotate(py_trees.behaviour.Behaviour):
     """Rotate robot by a given angle"""
@@ -196,7 +233,7 @@ class GetNoisette(GetLoc):
         self.noisettes=[Position(100, 700,90),Position(100, 1500,90), Position(1050, 1125,0),Position(1000, 1750,0),Position(2750, 700,90),Position(2750, 1500,90),Position(1750, 1125,0),Position(1800, 1750,0)]
         #self.queue=self.noisettes
         
-        self.queue=[Position(100, 700,90)]
+        self.queue=[Position(1000, 700,90)]
 
 
 
