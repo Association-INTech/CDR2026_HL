@@ -52,17 +52,23 @@ class Robot(Rectangle):
         self.REF_HEIGHT = 175
 
         if self.angle==0 or self.angle==180:
-            self.width = self.REF_WIDTH
-            self.height = self.REF_HEIGHT
-        else:
             self.width = self.REF_HEIGHT
             self.height = self.REF_WIDTH
+        else:
+            self.width = self.REF_WIDTH
+            self.height = self.REF_HEIGHT
+
 
         self.eaten = []
 
         self.move_remaining = 0
 
         super().__init__(self.x,self.y,self.width,self.height,self.color,self.angle,self.speed)
+
+    def getCenterPos(self):
+        center_x = self.x + self.width // 2
+        center_y = self.y + self.height // 2
+        return (center_x,center_y)
 
 
     def handle_input(self, dt, groupList=[]):
@@ -112,8 +118,7 @@ class Robot(Rectangle):
     def rotate(self, rotateAngle):
         self.angle=(self.angle+rotateAngle) % 360
         
-        center_x = self.x + self.width // 2
-        center_y = self.y + self.height // 2
+        center_x,center_y = self.getCenterPos()
 
         if rotateAngle % 180 != 0:
             self.width, self.height = self.height, self.width
@@ -121,8 +126,10 @@ class Robot(Rectangle):
         self.x = center_x - self.width//2
         self.y = center_y - self.height//2
 
+        print(f"{center_x},{center_y} => {self.getCenterPos()}")
+
     def updateRect(self):
-        self.rect=pygame.Rect(self.x,self.y,self.height,self.width)
+        self.rect=pygame.Rect(self.x,self.y,self.width,self.height)
 
     def draw(self, surface):
         self.updateRect()
@@ -289,6 +296,7 @@ class Simulation:
             NutBoxGroup(1750, 1125, self.blue, self.yellow, angle=90),
             NutBoxGroup(1800, 1750, self.blue, self.yellow, angle=90),
         ]
+
         if auto_start:
             self.loop()
 
@@ -321,7 +329,7 @@ class Simulation:
 
 
     def update(self):
-        #self.robot.handle_input(self.dt,self.nutBoxGroups)
+        self.robot.handle_input(self.dt,self.nutBoxGroups)
         self.robot.update_move(self.dt, self.nutBoxGroups)
         #self.robot.clamp(self.width, self.height)
 

@@ -18,8 +18,20 @@ class Robot:
         self.start_time = time.time()
         self.logger = py_trees.logging.Logger("Robot")
         self.graph=GridGraph(3000,2000,scale=10)
-        self.graph.addForbidden(800,1500,0,1500)
-    
+        #self.graph.addForbidden(800,1500,0,1500)
+        self.noisettes=[Position(100, 700,90),Position(100, 1500,90), Position(1050, 1125,0),Position(1000, 1750,0),Position(2750, 700,90),Position(2750, 1500,90),Position(1750, 1125,0),Position(1800, 1750,0)] #top left pos
+        self.nutBoxGroupForbidden()
+
+
+    def nutBoxGroupForbidden(self, buffer=160):
+        for noisette in self.noisettes:
+            if noisette.angle==0:
+                sizex=200
+                sizey=150
+            else:
+                sizex=150
+                sizey=200
+            self.graph.addForbidden(noisette.x-buffer,noisette.x+sizex+buffer,noisette.y-buffer,noisette.y+sizey+buffer)
 
     def getID(self):
         self.__countID+=1
@@ -168,8 +180,6 @@ class GoToLoc(py_trees.decorators.PassThrough):
                 return (Move,abs(diff.y))
             if (diff.x==0 and diff.y==0):
                 return (Rotate,diff.angle)
-            else:
-                print(f"Diff: {diff.x},{diff.y},{diff.angle}")
 
         path=robot.graph.getShortestPathPos(currentPos,targetPos)
 
@@ -246,10 +256,9 @@ class ProcedurePushNoisette(py_trees.decorators.PassThrough):
 class GetNoisette(GetLoc):
     def __init__(self, name: str):
         super().__init__(name)
-        self.noisettes=[Position(100, 700,90),Position(100, 1500,90), Position(1050, 1125,0),Position(1000, 1750,0),Position(2750, 700,90),Position(2750, 1500,90),Position(1750, 1125,0),Position(1800, 1750,0)]
-        #self.queue=self.noisettes
-        
-        self.queue=[Position(2000, 50,-90)]
+        #self.noisettes=[Position(100, 700,90),Position(100, 1500,90), Position(1050, 1125,0),Position(1000, 1750,0),Position(2750, 700,90),Position(2750, 1500,90),Position(1750, 1125,0),Position(1800, 1750,0)]
+        #self.queue=[Position(noisette.x+50,noisette.y-100,noisette.angle) for noisette in robot.noisettes]
+        self.queue=[Position(2800, 1200,0)]
 
 
 

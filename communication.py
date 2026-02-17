@@ -22,7 +22,9 @@ class CommSim:
     def start_rotate(self, angle):
         self.simulation.robot.rotate(angle)
     def get_position(self):
-        return Position(self.simulation.robot.x,self.simulation.robot.y,self.simulation.robot.angle)
+        x,y=self.simulation.robot.getCenterPos()
+        angle=self.simulation.robot.angle%360
+        return Position(x,y,angle)
     def get_feedback(self,id):
         print(f"Feedback {id}:{self.simulation.robot.move_remaining}")
         return (self.simulation.robot.move_remaining == 0)

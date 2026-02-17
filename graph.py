@@ -1,6 +1,7 @@
 from position import Position
 import heapq
 import math
+import copy
 
 class Graph:
     def __init__(self,size):
@@ -81,11 +82,15 @@ class Graph:
 class GridGraph(Graph):
     def __init__(self,width,height,scale=1):
         self.scale=scale
+        self.realWidth=width
+        self.realHeight=height
         self.width=width//self.scale
         self.height=height//self.scale
         self.NbRotations=4
         super().__init__(self.width*self.height*self.NbRotations+1)
         self.setupGrid()
+        self.backup=copy.deepcopy(self.weights)
+        self.forbidden=[]
     
     def setupGrid(self):
         forward_speed=1*self.scale
@@ -178,16 +183,28 @@ class GridGraph(Graph):
     def getShortestPathPos(self,startPos,goalPos):
         return [self.getPos(id) for id in self.getShortestPath(self.getNodeIDFromPos(startPos),self.getNodeIDFromPos(goalPos))]
     
-    def addForbidden(self,xmin,xmax,ymin,ymax):
-        forbidden_nodes = set()
-        for x in range (xmin,xmax,self.scale):
-            for y in range (ymin,ymax,self.scale):
+    def addForbidden(self,xmin,xmax,ymin,ymax,val=1000000):
+        for x in range (max(xmin,0),min(xmax,self.realWidth-1),self.scale):
+            for y in range (max(ymin,0),min(ymax,self.realHeight-1),self.scale):
                 for angle in range(self.NbRotations):
                     angle_degrees = angle * 360 / self.NbRotations
                     current = self.getNodeIDFromPos(Position(x,y,angle_degrees))
                     neighbors=self.get_neighbors(current)
                     for neighbor,weight in neighbors:
-                        self.add_edge(current,neighbor,1000000)
+                        self.add_edge(current,neighbor,val*weight)
+        self.forbidden.append((xmin,xmax,ymin,ymax,val))
+        return len(self.forbidden)-1
+
+    def removeForbidden(self,index):
+        self.restore_graph()
+        self.forbidden.pop(index)
+        for xmin,xmax,ymin,ymax,val in self.forbidden:
+            self.addForbidden(xmin,xmax,ymin,ymax,val)
+
+    def restore_graph(self):
+        self.weights = copy.deepcopy(self.backup)
+
+    
 
 if __name__ == "__main__":
     test=GridGraph(3000,2000,scale=10)
