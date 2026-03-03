@@ -48,8 +48,8 @@ class Robot(Rectangle):
         self.angle=angle
         self.speed=speed
         
-        self.REF_WIDTH = 310
-        self.REF_HEIGHT = 175
+        self.REF_WIDTH = 376
+        self.REF_HEIGHT = 200
 
         if self.angle==0 or self.angle==180:
             self.width = self.REF_HEIGHT
@@ -62,6 +62,7 @@ class Robot(Rectangle):
         self.eaten = []
 
         self.move_remaining = 0
+        self.reverse = False
 
         super().__init__(self.x,self.y,self.width,self.height,self.color,self.angle,self.speed)
 
@@ -90,15 +91,20 @@ class Robot(Rectangle):
             groupList[i].move(dx,dy)
 
     def start_move(self, distance):
-        self.move_remaining = distance
+        self.move_remaining = abs(distance)
+        self.reverse=(distance<0)
+        
 
     def update_move(self, dt, groupList=[]):
         if self.move_remaining == 0:
             return
 
-        step = self.speed * dt
+        speed=self.speed
+        if self.reverse:
+            speed=-speed
+        
+        step = speed * dt
 
-        # stop exactly at target distance
         if abs(step) > abs(self.move_remaining):
             step = self.move_remaining
 
@@ -107,7 +113,7 @@ class Robot(Rectangle):
 
         self.x += dx
         self.y += dy
-        self.move_remaining -= step
+        self.move_remaining -= abs(step)
 
         print(f"Step: {step}")
 
@@ -323,7 +329,7 @@ class Simulation:
             elif event.type == pygame.KEYDOWN:
                 # When "F" is pressed, print rectangle position
                 if event.key == pygame.K_f:
-                    print(f"Robot pos: x={self.robot.x:.1f}, y={self.robot.y:.1f}")
+                    print(f"Robot pos: x={self.robot.x:.1f}, y={self.robot.y:.1f}, angle={self.robot.angle}")
                 if event.key == pygame.K_r:
                     self.robot.rotate(90)
 
