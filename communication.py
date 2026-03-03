@@ -12,8 +12,13 @@ class Comm:
         return None
     def get_feedback(self,id):
         return True
+    def putTopBarrier(self,state):
+        print(f"Top Barrier: {state}")
+    def putBottomBarrier(self,state):
+        print(f"Bottom Barrier: {state}")
 
-class CommSim:
+
+class CommSim(Comm):
     """Classe qui gère la communication avec le LL, simulé avec pygame"""
     def __init__(self):
         self.simulation = Simulation(0.5, auto_start=False)
@@ -22,7 +27,13 @@ class CommSim:
     def start_rotate(self, angle):
         self.simulation.robot.rotate(angle)
     def get_position(self):
-        return Position(self.simulation.robot.x,self.simulation.robot.y,self.simulation.robot.angle)
+        x,y=self.simulation.robot.getCenterPos()
+        angle=self.simulation.robot.angle%360
+        return Position(x,y,angle)
     def get_feedback(self,id):
-        print(f"Feedback {id}:{self.simulation.robot.move_remaining}")
+        #print(f"Feedback {id}:{self.simulation.robot.move_remaining}")
         return (self.simulation.robot.move_remaining == 0)
+    def putTopBarrier(self,state):
+        self.simulation.robot.isTopDown=state
+    def putBottomBarrier(self,state):
+        self.simulation.robot.isBottomDown=state

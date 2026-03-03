@@ -15,7 +15,6 @@ class Rectangle:
         self.image = pygame.Surface((self.width, self.height))
         self.image.fill(self.color)
 
-
     def handle_input(self, dt):
         keys = pygame.key.get_pressed()
         if keys[pygame.K_LEFT] or keys[pygame.K_a]:
@@ -40,7 +39,7 @@ class Rectangle:
         # Draw rotated rectangle on main surface
         surface.blit(rotated_image, rotated_rect.topleft)
 
-class Robot(Rectangle):
+class Robot():
     def __init__(self, x, y, color,angle=0, speed=250):
         self.x = x
         self.y = y
@@ -48,21 +47,35 @@ class Robot(Rectangle):
         self.angle=angle
         self.speed=speed
         
-        self.REF_WIDTH = 310
-        self.REF_HEIGHT = 175
+        self.REF_WIDTH = 376
+        self.REF_HEIGHT = 200
+        
+        self.INS_WIDTH = 211
 
         if self.angle==0 or self.angle==180:
-            self.width = self.REF_WIDTH
-            self.height = self.REF_HEIGHT
-        else:
             self.width = self.REF_HEIGHT
             self.height = self.REF_WIDTH
+        else:
+            self.width = self.REF_WIDTH
+            self.height = self.REF_HEIGHT
 
-        self.eaten = []
+        self.isTopDown=True
+        self.isBottomDown=True
 
         self.move_remaining = 0
+        self.reverse = False
 
-        super().__init__(self.x,self.y,self.width,self.height,self.color,self.angle,self.speed)
+    def getCenterPos(self):
+        if self.angle==0 or self.angle==180:
+            width = self.REF_HEIGHT
+            height = self.REF_WIDTH
+        else:
+            width = self.REF_WIDTH
+            height = self.REF_HEIGHT
+
+        center_x = self.x + self.width // 2
+        center_y = self.y + self.height // 2
+        return (center_x,center_y)
 
 
     def handle_input(self, dt, groupList=[]):
@@ -84,15 +97,20 @@ class Robot(Rectangle):
             groupList[i].move(dx,dy)
 
     def start_move(self, distance):
-        self.move_remaining = distance
+        self.move_remaining = abs(distance)
+        self.reverse=(distance<0)
+        
 
     def update_move(self, dt, groupList=[]):
         if self.move_remaining == 0:
             return
 
-        step = self.speed * dt
+        speed=self.speed
+        if self.reverse:
+            speed=-speed
+        
+        step = speed * dt
 
-        # stop exactly at target distance
         if abs(step) > abs(self.move_remaining):
             step = self.move_remaining
 
@@ -101,7 +119,7 @@ class Robot(Rectangle):
 
         self.x += dx
         self.y += dy
-        self.move_remaining -= step
+        self.move_remaining -= abs(step)
 
         print(f"Step: {step}")
 
@@ -109,11 +127,15 @@ class Robot(Rectangle):
         for i in collide:
             groupList[i].move(dx, dy)
 
-    def rotate(self, rotateAngle):
+    def rotate(self, rotateAngle,groupList=[]):
+        
+        for i in self.listAllEaten(groupList):
+            groupList[i].rotate(rotateAngle)
+
+        
         self.angle=(self.angle+rotateAngle) % 360
         
-        center_x = self.x + self.width // 2
-        center_y = self.y + self.height // 2
+        center_x,center_y = self.getCenterPos()
 
         if rotateAngle % 180 != 0:
             self.width, self.height = self.height, self.width
@@ -121,34 +143,86 @@ class Robot(Rectangle):
         self.x = center_x - self.width//2
         self.y = center_y - self.height//2
 
+        #print(f"{center_x},{center_y} => {self.getCenterPos()}")
+        
+        
+
     def updateRect(self):
-        self.rect=pygame.Rect(self.x,self.y,self.height,self.width)
+        self.rect=pygame.Rect(self.x,self.y,self.width,self.height)        
+        
+        sideLength=(self.REF_WIDTH-self.INS_WIDTH)//2
+        thickness=4
+
+        if self.angle==0:
+            self.rect=pygame.Rect(self.x,self.y,self.REF_HEIGHT,self.REF_WIDTH)         
+            self.leftRect=pygame.Rect(self.x,self.y,self.REF_HEIGHT,sideLength)        
+            self.rightRect=pygame.Rect(self.x,self.y+sideLength+self.INS_WIDTH,self.REF_HEIGHT,sideLength)
+            self.bottomRect=pygame.Rect(self.x,self.y+sideLength,thickness,self.INS_WIDTH)      
+            self.topRect=pygame.Rect(self.x+self.REF_HEIGHT,self.y+sideLength,thickness,self.INS_WIDTH) 
+            
+        elif self.angle==90:
+            self.rect=pygame.Rect(self.x,self.y,self.REF_WIDTH,self.REF_HEIGHT)         
+            self.leftRect=pygame.Rect(self.x,self.y,sideLength,self.REF_HEIGHT)        
+            self.rightRect=pygame.Rect(self.x+sideLength+self.INS_WIDTH,self.y,sideLength,self.REF_HEIGHT)
+            self.bottomRect=pygame.Rect(self.x+sideLength,self.y,self.INS_WIDTH,thickness)      
+            self.topRect=pygame.Rect(self.x+sideLength,self.y+self.REF_HEIGHT,self.INS_WIDTH,thickness)      
+                 
+        elif self.angle==180:
+            self.rect=pygame.Rect(self.x,self.y,self.REF_HEIGHT,self.REF_WIDTH)         
+            self.leftRect=pygame.Rect(self.x,self.y,self.REF_HEIGHT,sideLength)        
+            self.rightRect=pygame.Rect(self.x,self.y+sideLength+self.INS_WIDTH,self.REF_HEIGHT,sideLength)
+            self.bottomRect=pygame.Rect(self.x+self.REF_HEIGHT,self.y+sideLength,thickness,self.INS_WIDTH)      
+            self.topRect=pygame.Rect(self.x,self.y+sideLength,thickness,self.INS_WIDTH)      
+
+        elif self.angle==270:
+            self.rect=pygame.Rect(self.x,self.y,self.REF_WIDTH,self.REF_HEIGHT)         
+            self.leftRect=pygame.Rect(self.x,self.y,sideLength,self.REF_HEIGHT)        
+            self.rightRect=pygame.Rect(self.x+sideLength+self.INS_WIDTH,self.y,sideLength,self.REF_HEIGHT)
+            self.bottomRect=pygame.Rect(self.x+sideLength,self.y+self.REF_HEIGHT,self.INS_WIDTH,thickness)      
+            self.topRect=pygame.Rect(self.x+sideLength,self.y,self.INS_WIDTH,thickness)      
+        else:
+            raise ValueError(f"Unexpected angle: {self.angle}")
+
 
     def draw(self, surface):
         self.updateRect()
-        pygame.draw.rect(surface, self.color, self.rect)
+        #pygame.draw.rect(surface, self.color, self.rect)
+        pygame.draw.rect(surface, self.color, self.leftRect)
+        pygame.draw.rect(surface, self.color, self.rightRect)
+        if self.isBottomDown: pygame.draw.rect(surface, self.color, self.bottomRect)
+        if self.isTopDown: pygame.draw.rect(surface, self.color, self.topRect)
 
-    def collidelistallNutBoxGroup(self, list):
-        rects = [nutBox.rect() for nutBox in list]
+    def collidelistallNutBoxGroup(self, group):
+        rects = [nutBox.rect() for nutBox in group]
+        self.updateRect()
+        collisions= list()
+        collisions+=self.leftRect.collidelistall(rects)
+        collisions+=self.rightRect.collidelistall(rects)
+        if self.isBottomDown: collisions+=self.bottomRect.collidelistall(rects)
+        if self.isTopDown: collisions+=self.topRect.collidelistall(rects)
+        return list(set(collisions))
+    
+    def listAllEaten(self,group):
+        rects = [nutBox.rect() for nutBox in group]
         self.updateRect()
         return self.rect.collidelistall(rects)
 
 
 class NutBox(Rectangle):
+    WIDTH=150
+    HEIGHT=50
     def __init__(self, x, y, color,angle=0):
         self.x = x
         self.y = y
-        self.width = 150
-        self.height = 50
         self.color = color
         self.angle=angle
-        super().__init__(self.x,self.y,self.width,self.height,self.color,self.angle)
+        super().__init__(self.x,self.y,NutBox.WIDTH,NutBox.HEIGHT,self.color,self.angle)
 
     def updateRect(self):
-        if self.angle==0 or self.angle==180:
-            self.rect=pygame.Rect(self.x,self.y,self.width,self.height)
+        if self.angle%180==0:
+            self.rect=pygame.Rect(self.x,self.y,NutBox.WIDTH,NutBox.HEIGHT)
         else:
-            self.rect=pygame.Rect(self.x,self.y,self.height,self.width)
+            self.rect=pygame.Rect(self.x,self.y,NutBox.HEIGHT,NutBox.WIDTH)
 
 
     def draw(self, surface):
@@ -156,24 +230,35 @@ class NutBox(Rectangle):
         pygame.draw.rect(surface, self.color, self.rect)
 
 class NutBoxGroup():
+    BOX_COUNT=4
     def __init__(self, x, y, color1, color2, angle=0):
         self.x = x
         self.y = y
         self.angle=angle
-        colors = [color1,color1,color2,color2]
-        random.shuffle(colors)
+        self.colors = [color1,color1,color2,color2]
+        random.shuffle(self.colors)
+        self.addNutBoxes(self.colors)
+    
+    def addNutBoxes(self,colors):
         self.nutBoxes = []
-        for i in range(4):
-            if self.angle==0 or self.angle==180:
-                self.nutBoxes.append(NutBox(x=self.x, y=self.y+50*i, color=colors[i],angle=self.angle))
+        for i in range(NutBoxGroup.BOX_COUNT):
+            if self.angle==0:
+                self.nutBoxes.append(NutBox(x=self.x, y=self.y+NutBox.HEIGHT*i, color=colors[i],angle=self.angle))
+            elif self.angle==90:
+                self.nutBoxes.append(NutBox(x=self.x+NutBox.HEIGHT*i, y=self.y, color=colors[NutBoxGroup.BOX_COUNT-i-1],angle=self.angle))
+            elif self.angle==180:
+                self.nutBoxes.append(NutBox(x=self.x, y=self.y+NutBox.HEIGHT*i, color=colors[NutBoxGroup.BOX_COUNT-i-1],angle=self.angle))
+            elif self.angle==270:
+                self.nutBoxes.append(NutBox(x=self.x+NutBox.HEIGHT*i, y=self.y, color=colors[i],angle=self.angle))
             else:
-                self.nutBoxes.append(NutBox(x=self.x+50*i, y=self.y, color=colors[i],angle=self.angle))
+                raise ValueError(f"Unexpected angle: {self.angle}")
+
     
     def rect(self):
         if self.angle==0 or self.angle==180:
-            return pygame.Rect(self.x,self.y,150,50*4)
+            return pygame.Rect(self.x,self.y,NutBox.WIDTH,NutBox.HEIGHT*NutBoxGroup.BOX_COUNT)
         else:
-            return pygame.Rect(self.x,self.y,50*4,150)
+            return pygame.Rect(self.x,self.y,NutBox.HEIGHT*NutBoxGroup.BOX_COUNT,NutBox.WIDTH)
 
 
     def move(self,dx,dy):
@@ -182,6 +267,10 @@ class NutBoxGroup():
         for nutBox in self.nutBoxes:
             nutBox.x+=dx
             nutBox.y+=dy
+    
+    def rotate(self,angle):
+        self.angle=(self.angle+angle)%360
+        self.addNutBoxes(self.colors)
 
     def draw(self, surface):
         for nutBox in self.nutBoxes:
@@ -206,21 +295,7 @@ class Simulation:
 
         pygame.font.init()
         self.font = pygame.font.SysFont("notomono", 30)
-
-        # Background (optional)
         self.background = pygame.image.load("table.svg").convert()
-
-        # Create a movable rectangle instance
-        self.rectangle = Rectangle(
-            x=self.width // 2,
-            y=self.height // 2,
-            width=310,
-            height=175,
-            color=(255, 0, 0),
-            speed=250,
-            angle=0
-        )
-
 
         self.blue=(0, 128, 255)
         self.yellow=(255, 128, 0)
@@ -231,7 +306,7 @@ class Simulation:
             y=100,
             color=(255, 0, 0),
             speed=250,
-            angle=90  
+            angle=0  
         )
         '''
         self.nutBoxes = [
@@ -289,6 +364,7 @@ class Simulation:
             NutBoxGroup(1750, 1125, self.blue, self.yellow, angle=90),
             NutBoxGroup(1800, 1750, self.blue, self.yellow, angle=90),
         ]
+
         if auto_start:
             self.loop()
 
@@ -315,13 +391,17 @@ class Simulation:
             elif event.type == pygame.KEYDOWN:
                 # When "F" is pressed, print rectangle position
                 if event.key == pygame.K_f:
-                    print(f"Robot pos: x={self.robot.x:.1f}, y={self.robot.y:.1f}")
+                    print(f"Robot pos: x={self.robot.x:.1f}, y={self.robot.y:.1f}, angle={self.robot.angle}")
                 if event.key == pygame.K_r:
-                    self.robot.rotate(90)
+                    self.robot.rotate(90,groupList=self.nutBoxGroups)
+                if event.key == pygame.K_t:
+                    self.robot.isTopDown= not self.robot.isTopDown
+                if event.key == pygame.K_b:
+                    self.robot.isBottomDown= not self.robot.isBottomDown
 
 
     def update(self):
-        #self.robot.handle_input(self.dt,self.nutBoxGroups)
+        self.robot.handle_input(self.dt,self.nutBoxGroups)
         self.robot.update_move(self.dt, self.nutBoxGroups)
         #self.robot.clamp(self.width, self.height)
 
