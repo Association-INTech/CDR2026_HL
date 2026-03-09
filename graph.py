@@ -2,6 +2,7 @@ from position import Position
 import heapq
 import math
 import copy
+import operator
 
 class Graph:
     def __init__(self,size):
@@ -59,8 +60,7 @@ class Graph:
 
             visited[current]=True
             if current == goal:
-                print(g[parent[goal]])
-                return parent 
+                return (parent,g[parent[goal]])
             
             for neighbor, weight in self.get_neighbors(current):
                 if visited[neighbor]:
@@ -95,7 +95,7 @@ class GridGraph(Graph):
     def setupGrid(self):
         forward_speed=1*self.scale
         backward_speed=2*self.scale
-        rotation_speed=3
+        rotation_speed=100000
         for x in range(self.width):
             for y in range(self.height):
                 for angle in range(self.NbRotations):
@@ -170,7 +170,7 @@ class GridGraph(Graph):
             posb=self.getPos(b)
             return math.sqrt((posb.x-posa.x)**2+(posb.y-posa.y)**2)
 
-        parent=self.A_star(start,goal,heuristic)
+        parent,dist=self.A_star(start,goal,heuristic)
 
         current=goal
 
@@ -178,12 +178,15 @@ class GridGraph(Graph):
         while current!=start:
             current=parent[current]
             path.insert(0,current)
-        return path
+        return path,dist
         
     def getShortestPathPos(self,startPos,goalPos):
-        return [self.getPos(id) for id in self.getShortestPath(self.getNodeIDFromPos(startPos),self.getNodeIDFromPos(goalPos))]
-    
-    def addForbidden(self,xmin,xmax,ymin,ymax,val=1000000):
+        return [self.getPos(id) for id in self.getShortestPath(self.getNodeIDFromPos(startPos),self.getNodeIDFromPos(goalPos))[0]]
+
+    def getDist(self,startPos,goalPos):
+        return self.getShortestPath(self.getNodeIDFromPos(startPos),self.getNodeIDFromPos(goalPos))[1]
+
+    def applyForbidden(self,xmin,xmax,ymin,ymax,val):
         for x in range (max(xmin,0),min(xmax,self.realWidth-1),self.scale):
             for y in range (max(ymin,0),min(ymax,self.realHeight-1),self.scale):
                 for angle in range(self.NbRotations):
@@ -192,19 +195,38 @@ class GridGraph(Graph):
                     neighbors=self.get_neighbors(current)
                     for neighbor,weight in neighbors:
                         self.add_edge(current,neighbor,val*weight)
-        self.forbidden.append((xmin,xmax,ymin,ymax,val))
-        return len(self.forbidden)-1
 
+    
+    def addForbidden(self,xmin,xmax,ymin,ymax,val=1000000,index=None):
+        self.applyForbidden(xmin, xmax, ymin, ymax, val)
+        if index is None:
+            self.forbidden.append((xmin, xmax, ymin, ymax, val))
+            return len(self.forbidden) - 1
+        else:
+            self.forbidden[index] = (xmin, xmax, ymin, ymax, val)
+            return index
+        
     def removeForbidden(self,index):
-        self.restore_graph()
-        self.forbidden.pop(index)
-        for xmin,xmax,ymin,ymax,val in self.forbidden:
-            self.addForbidden(xmin,xmax,ymin,ymax,val)
+        #self.restore_graph()
+        if self.forbidden[index]==None: 
+            return
+        xmin, xmax, ymin, ymax,_ = self.forbidden[index]
+        self.forbidden[index]=None
+        self.applyForbidden(xmin, xmax, ymin, ymax, 1)
+
+    def get_neighbors(self, node):
+        """
+        res=[]
+        for i in range(self.size):
+            if self.get_weight(node,i)!=0:
+                res.append((i,self.get_weight(node,i)))
+        return res
+        """
+        return [(neighbor,self.weights[(node,neighbor)]) for neighbor in self.adjacency_list[node]]
 
     def restore_graph(self):
         self.weights = copy.deepcopy(self.backup)
 
-    
 
 if __name__ == "__main__":
     test=GridGraph(3000,2000,scale=10)

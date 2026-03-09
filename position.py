@@ -23,5 +23,9 @@ class Position:
 
 
     def foward(self,dist):
-        self.x +=dist*math.cos(math.radians(self.angle))
-        self.y +=dist*math.sin(math.radians(self.angle))
+        x = self.x + dist*math.cos(math.radians(self.angle))
+        y = self.y +dist*math.sin(math.radians(self.angle))
+        return Position(x,y,self.angle)
+
+    def distance(self,pos):
+        return math.sqrt((pos.x-self.x)**2+(pos.y-self.y)**2)

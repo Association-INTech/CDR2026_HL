@@ -9,7 +9,7 @@ from communication import CommSim as Comm
 from graph import GridGraph
 
 AREA_WIDTH = 3000
-AREA_HEIGHT = 3000
+AREA_HEIGHT = 2000
 
 
 class Robot:
@@ -26,6 +26,7 @@ class Robot:
         self.start_time = time.time()
         self.logger = py_trees.logging.Logger("Robot")
         self.graph=GridGraph(AREA_WIDTH,AREA_HEIGHT,scale=10)
+        self.comm.link_frobidden(self.graph.forbidden)
         #self.graph.addForbidden(800,1500,0,1500)
         
         self.noisettes = [
@@ -39,6 +40,20 @@ class Robot:
             NutBox(Position(1800, 1750, 0))
         ]        
         self.nutBoxGroupForbidden()
+        
+        self.pantries = [
+            Position(100, 1200, 90),
+            Position(800, 1200, 0),
+            Position(1500, 1200, 0),
+            Position(2200, 1200, 0),
+            Position(2900, 1200, 90),
+            Position(2300, 1900, 0),
+            Position(1500, 1900, 0),
+            Position(700, 1900, 0),
+            Position(1250, 550, 0),
+            Position(1750, 550, 0)
+
+        ]
             
     
     def nutBoxGroupForbidden(self):
@@ -47,7 +62,19 @@ class Robot:
             noisette.index=self.graph.addForbidden(xmin,xmax,ymin,ymax)
 
     def getNutBoxPos(self):
-        return self.pos.foward(Robot.HEIGHT//2) #en mode chasse neige
+        self.update()
+        #return self.pos.foward(Robot.HEIGHT//2) #en mode chasse neige
+        contact = self.pos.foward(-Robot.HEIGHT//2) 
+        if self.pos.angle == 0:
+            return Position(contact.x, contact.y - NutBox.HEIGHT//2, 0)
+        elif self.pos.angle == 90:
+            return Position(contact.x - NutBox.HEIGHT//2, contact.y, 90)
+        elif self.pos.angle == 180:
+            return Position(contact.x, contact.y - NutBox.HEIGHT//2, 180)
+        elif self.pos.angle == 270:
+            return Position(contact.x - NutBox.HEIGHT//2, contact.y, 270)
+        else:
+            raise ValueError(f"Unexpected angle: {self.pos.angle}")
 
     def getID(self):
         self.__countID+=1
@@ -77,6 +104,18 @@ class Robot:
         self.comm.start_rotate(angle)
         self.actions.append(id)
         return id
+    
+    def top_barrier(self,state):
+        id=self.getID()
+        self.comm.putTopBarrier(state)
+        return id
+
+
+    def bottom_barrier(self,state):
+        id=self.getID()
+        self.comm.putBottomBarrier(state)
+        return id
+
 
     def is_moving(self):
         self.update()
@@ -85,26 +124,37 @@ class Robot:
 class NutBox():
     WIDTH=150
     HEIGHT=50
-    
+    BOX_COUNT=4
     def __init__(self,pos):
         self.pos=pos #top right pos
         self.index=None
-        
+    
+    def setCenter(self,pos):
+        if self.pos.angle%180==0:
+            self.pos=pos.add(Position(NutBox.WIDTH//2,-(NutBox.HEIGHT*NutBox.BOX_COUNT)//2,0))
+        else:
+            self.pos=pos.add(Position((NutBox.HEIGHT*NutBox.BOX_COUNT)//2,-NutBox.WIDTH//2,0))
+
+    
     def getPushpos(self,buffer=0):
-            if self.pos.angle==0:
-                return self.pos.add(Position(-buffer,NutBox.WIDTH//2,0))
-            else:
-                return self.pos.add(Position(NutBox.WIDTH//2,buffer,0))
-            
-    def getForbiddenZone(self,buffer):
         if self.pos.angle==0:
+            return self.pos.add(Position(-buffer,NutBox.WIDTH//2,0))
+        else:
+            return self.pos.add(Position(NutBox.WIDTH//2,buffer,0))    
+                
+    def getForbiddenZone(self,buffer):
+        if self.pos.angle% 180==0:
             sizex=200
             sizey=150
         else:
             sizex=150
             sizey=200
-        return (self.pos.x-buffer,self.pos.x+sizex+buffer,self.pos.y-buffer,self.pos.y+sizey+buffer)
-        
+        return (
+            int(self.pos.x - buffer),
+            int(self.pos.x + sizex + buffer),
+            int(self.pos.y - buffer),
+            int(self.pos.y + sizey + buffer)
+        )        
 
 class GetLoc(py_trees.behaviour.Behaviour):
     """Obtient le prochain endroit"""
@@ -123,13 +173,15 @@ class GetLoc(py_trees.behaviour.Behaviour):
         ]
         self.queue.append(Position(0,0,0))
 
-
     def update(self):
         if len(self.queue)==0:
             return py_trees.common.Status.FAILURE
-        self.blackboard.loc=self.queue.pop(0)
+        self.blackboard.loc=self.getNextLoc()
         self.logger.debug(f"Going to {str(self.blackboard.loc)}")
         return py_trees.common.Status.SUCCESS
+    
+    def getNextLoc(self):
+        return self.queue.pop(0)
 
 
 class GoToLoc(py_trees.decorators.PassThrough):
@@ -215,9 +267,9 @@ class GoToLoc(py_trees.decorators.PassThrough):
             diff=posB.difference(posA)
             if (diff.y==0 and diff.angle==0):
                 return (Move,abs(diff.x))
-            if (diff.x==0 and diff.angle==0):
+            elif (diff.x==0 and diff.angle==0):
                 return (Move,abs(diff.y))
-            if (diff.x==0 and diff.y==0):
+            elif (diff.x==0 and diff.y==0):
                 return (Rotate,diff.angle)
 
         path=robot.graph.getShortestPathPos(currentPos,targetPos)
@@ -280,43 +332,108 @@ class Move(py_trees.behaviour.Behaviour):
             return py_trees.common.Status.RUNNING
         return py_trees.common.Status.SUCCESS
 
+class TopBarrier(py_trees.behaviour.Behaviour):
+    def __init__(self, name: str, state: bool) -> None:
+        super().__init__(name)
+        self.state = state
+
+    def initialise(self):
+        self.start_time=time.time()
+        self.id=robot.top_barrier(self.state)
+
+    def update(self):
+        if time.time() - self.start_time > 10:
+            return py_trees.common.Status.FAILURE
+        if robot.is_moving():
+            return py_trees.common.Status.RUNNING
+        return py_trees.common.Status.SUCCESS
+
+class BottomBarrier(py_trees.behaviour.Behaviour):
+    def __init__(self, name: str, state: bool) -> None:
+        super().__init__(name)
+        self.state = state
+
+    def initialise(self):
+        self.start_time=time.time()
+        self.id=robot.bottom_barrier(self.state)
+
+    def update(self):
+        if time.time() - self.start_time > 10:
+            return py_trees.common.Status.FAILURE
+        if robot.is_moving():
+            return py_trees.common.Status.RUNNING
+        return py_trees.common.Status.SUCCESS
+
+
 class ProcedurePushNoisette(py_trees.decorators.PassThrough):
     def __init__(self, name: str,):
         self.main_sequence = py_trees.composites.Sequence(name+"MainSequence", True)
         super().__init__(name,self.main_sequence)
         self.main_sequence.add_child(GetNoisette(name="get_Noisette_location"))
         self.main_sequence.add_child(GoToLoc(name="go_to_noisette"))
+        self.main_sequence.add_child(TopBarrier(name="lift_top",state=False))
+        self.main_sequence.add_child(BottomBarrier(name="drop_bot",state=True))
         self.main_sequence.add_child(Move(name="push_noisette",value=200))
-        self.main_sequence.add_child(Move(name="go_back",value=-200))
-    
-    def terminate(self, new_status):
-        
-        return super().terminate(new_status)
+        self.main_sequence.add_child(TopBarrier(name="drop_top",state=True))
+        self.main_sequence.add_child(UpdateNoisettePos(name="RemoveForbidden",doNewForbidden=False))
+        self.main_sequence.add_child(GetPantry(name="get_pantry_location"))
+        self.main_sequence.add_child(GoToLoc(name="go_to_pantry"))
+        self.main_sequence.add_child(BottomBarrier(name="lift_bot",state=False))
+        self.main_sequence.add_child(UpdateNoisettePos(name="ChangeForbidden"))
+        #self.main_sequence.add_child(Move(name="go_back",value=300))
 
 
 
 class GetNoisette(GetLoc):
     def __init__(self, name: str, ):
         super().__init__(name)
+        self.blackboard.register_key(key="nutBox", access=py_trees.common.Access.WRITE)
         #self.noisettes=[Position(100, 700,90),Position(100, 1500,90), Position(1050, 1125,0),Position(1000, 1750,0),Position(2750, 700,90),Position(2750, 1500,90),Position(1750, 1125,0),Position(1800, 1750,0)]
-        self.queue=[noisette.getPushpos(buffer=0) for noisette in robot.noisettes]
+        #self.queue=[noisette.getPushpos(buffer=0) for noisette in robot.noisettes]
         #self.queue=[Position(2800, 1200,0)]
+        self.queue=robot.noisettes
+        
+    def getNextLoc(self):
+        robot.update()
+        #self.queue = sorted(self.queue, key=lambda nb: robot.graph.getDist(robot.pos, nb.pos))
+        self.queue = sorted(self.queue, key=lambda nb: robot.pos.distance(nb.pos))
+        res=self.queue.pop(0)
+        self.blackboard.nutBox=res
+        return res.getPushpos(buffer=0)
+
+class GetPantry(GetLoc):
+    def __init__(self, name: str, ):
+        super().__init__(name)
+        self.blackboard.register_key(key="nutBox", access=py_trees.common.Access.WRITE)
+        #self.noisettes=[Position(100, 700,90),Position(100, 1500,90), Position(1050, 1125,0),Position(1000, 1750,0),Position(2750, 700,90),Position(2750, 1500,90),Position(1750, 1125,0),Position(1800, 1750,0)]
+        #self.queue=[noisette.getPushpos(buffer=0) for noisette in robot.noisettes]
+        #self.queue=[Position(2800, 1200,0)]
+        self.queue=robot.pantries
+
+    def getNextLoc(self):
+        robot.update()
+        #self.queue = sorted(self.queue, key=lambda nb: robot.graph.getDist(robot.pos, nb.pos))
+        self.queue = sorted(self.queue, key=lambda nb: robot.pos.distance(nb))
+        return super().getNextLoc()
+
 
 class UpdateNoisettePos(py_trees.behaviour.Behaviour):
     """Updates the NutBox position after being pushed"""
 
-    def __init__(self, name: str):
+    def __init__(self, name: str, doNewForbidden=True):
         super().__init__(name)
         self.blackboard = self.attach_blackboard_client(name="UpdateNoisettePos")
-        self.blackboard.register_key(key="noisette_index", access=py_trees.common.Access.READ)
-
+        self.blackboard.register_key(key="nutBox", access=py_trees.common.Access.READ)
+        self.doNewForbidden=doNewForbidden
+        
     def update(self):
-        index = self.blackboard.noisette_index
-        noisette = robot.noisettes[index]
+        noisette = self.blackboard.nutBox
         noisette.pos=robot.getNutBoxPos()
         robot.graph.removeForbidden(noisette.index)
-        xmin, xmax, ymin, ymax = noisette.getForbiddenZone(buffer=Robot.WIDTH // 2)
-        noisette.index = robot.graph.addForbidden(xmin, xmax, ymin, ymax)
+        if self.doNewForbidden:
+            buffer=75
+            xmin, xmax, ymin, ymax = noisette.getForbiddenZone(buffer=buffer+Robot.WIDTH // 2)
+            noisette.index = robot.graph.addForbidden(xmin, xmax, ymin, ymax)
         return py_trees.common.Status.SUCCESS
     
 
@@ -335,15 +452,6 @@ if __name__ == "__main__":
     print(py_trees.display.unicode_tree(root=root))
     behaviour_tree.setup(timeout=15)
 
-    
-    
-    def tick_simulation(tree: py_trees.trees.BehaviourTree) -> None:
-        """Update simulation before each behavior tree tick."""
-
-        if not robot.comm.simulation.tick():
-            # Simulation was closed, interrupt the behavior tree
-            tree.interrupt()
-
 
     def print_tree(tree: py_trees.trees.BehaviourTree) -> None:
         """Print the behaviour tree and its current status."""
@@ -355,7 +463,7 @@ if __name__ == "__main__":
         behaviour_tree.tick_tock(
             period_ms=100,
             number_of_iterations=py_trees.trees.CONTINUOUS_TICK_TOCK,
-            pre_tick_handler=tick_simulation,
+            pre_tick_handler=robot.comm.tick_simulation,
             post_tick_handler=print_tree
         )
     except KeyboardInterrupt:

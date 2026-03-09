@@ -364,13 +364,15 @@ class Simulation:
             NutBoxGroup(1750, 1125, self.blue, self.yellow, angle=90),
             NutBoxGroup(1800, 1750, self.blue, self.yellow, angle=90),
         ]
+        
+        self.forbidden_zones = []
 
         if auto_start:
             self.loop()
 
     def tick(self):
         # One frame - returns control immediately
-        self.dt = self.fps.tick(60) / 1000  # seconds per frame
+        self.dt = min(self.fps.tick(60) / 1000,0.1)  # seconds per frame
         self.events()
         self.update()
         self.render()
@@ -413,7 +415,13 @@ class Simulation:
         # Draw background
         self.surface.blit(pygame.transform.scale(self.background, self.surface.get_size()), (0, 0))
 
-        # Draw
+        transparent_surface = pygame.Surface(self.surface.get_size(), pygame.SRCALPHA)
+        for zone in self.forbidden_zones:
+            if zone is not None:
+                xmin, xmax, ymin, ymax, *_ = zone
+                rect = pygame.Rect(xmin, ymin, xmax - xmin, ymax - ymin)
+                pygame.draw.rect(transparent_surface, (255, 0, 0, 60), rect)  
+        self.surface.blit(transparent_surface, (0, 0))
         """
         for nutBox in self.nutBoxes:
             nutBox.draw(self.surface)

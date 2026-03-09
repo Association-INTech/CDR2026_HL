@@ -1,6 +1,6 @@
 from simulation import Simulation
 from position import Position
-
+from py_trees.trees import BehaviourTree
 class Comm:
     """Classe qui gère la communication avec le LL, on ajoutera les messages CAN ici"""
     #def __init__(self):
@@ -37,3 +37,10 @@ class CommSim(Comm):
         self.simulation.robot.isTopDown=state
     def putBottomBarrier(self,state):
         self.simulation.robot.isBottomDown=state
+    def tick_simulation(self, tree: BehaviourTree) -> None:
+        """Update simulation before each behavior tree tick."""
+        if not self.simulation.tick():
+            # Simulation was closed, interrupt the behavior tree
+            tree.interrupt()
+    def link_frobidden(self, forbidden_zones):
+        self.simulation.forbidden_zones = forbidden_zones  # same reference
