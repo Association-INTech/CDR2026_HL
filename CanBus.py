@@ -8,8 +8,10 @@ import isotp
 reg = {
     "move" : (0, "<Bd"),
     "rotate" : (1, "<Bd"),
-    "stop" : (2, "<B"),
-    "is_idle" : (3, "<B?")
+    "set_pos" : (2, "<Bdd"),
+    "stop" : (3, "<B"),
+    "is_idle" : (4, "<B?"),
+    "get_pos" : (5, "<Bddd")
 }
 
 class CanBus:
