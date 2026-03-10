@@ -14,10 +14,18 @@ class CommunicationCan(Communication):
     def rotate(self, angle: float):
         self.bus.send("rotate", angle)
 
-
-    def position(self):
-        return self.bus.request("position")
+    
+    def set_position(self, x: float, y: float):
+        return self.bus.send("position", x, y)
+        
+    
+    def stop(self):
+        self.bus.send("stop")
     
 
     def is_idle(self):
         return self.bus.request("is_idle")
+
+    
+    def get_position(self):
+        return self.bus.request("position")
