@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 
 import time
 import struct
@@ -10,8 +11,8 @@ reg_asserv = {
     "rotate" : (01, "<Bd"),
     "set_pos" : (02, "<Bdd"),
     "stop" : (03, "<B"),
-    "is_idle" : (04, "<B?"),
-    "get_pos" : (05, "<Bddd")
+    "is_idle" : (16, "<B?"),
+    "get_pos" : (17, "<Bddd")
 }
 
 reg_action = {
