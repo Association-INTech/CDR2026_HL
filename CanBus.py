@@ -6,19 +6,21 @@ import can
 import isotp
 
 reg_asserv = {
-    "move" : (0, "d"),
-    "rotate" : (1, "d"),
-    "stop" : (2, ""),
-    "is_idle" : (3, "?"),
-    "position" : (4, "ddd")
+    "move" : (00, "<Bd"),
+    "rotate" : (01, "<Bd"),
+    "set_pos" : (02, "<Bdd"),
+    "stop" : (03, "<B"),
+    "is_idle" : (04, "<B?"),
+    "get_pos" : (05, "<Bddd")
 }
+
 reg_action = {
-    "lift" : (16, "BBBB")
+    "lift" : (00, "BBBB")
 }
 
 class CanBus:
 
-    def __init__(self, reg_type: str, can_channel="can0", bitrate=250000, tx_id=0x00, rx_id=0x01):
+    def __init__(self, reg_type: str, can_channel="can0", bitrate=250000):
         if reg_type == "asserv":
             self.tx = 0x1
             self.rx = 0x2
@@ -56,11 +58,12 @@ class CanBus:
     def close(self) -> None:
         self.bus.shutdown()
 
-
-    def send(self, payload: bytes, timeout=1.0) -> None:
+    def send(self, msg_name: str, *args, timeout=1.0) -> None:
         """
         Envoi un message et attend la fin de l'envoi.
         """
+        msg = self.reg[msg_name] # ajouter if not in reg
+        payload = struct.pack(msg[1], msg[0], *args) # erreur de format
         self.stack.send(payload)
 
         t0 = time.time()
@@ -72,25 +75,13 @@ class CanBus:
 
         raise TimeoutError("Timeout : Envoi non terminé. Délai dépassé")
     
-
-    def command(self, msg_name: str, *args, timeout=1.0) -> None:
-        """
-        Envoi un message et attend la fin de l'envoi.
-        """
-        msg = self.reg[msg_name] # ajouter if not in reg
-        payload = struct.pack("<B"+msg[1], msg[0], *args) # erreur de format
-        self.send(payload)
-
-
-    def request(self, msg_name: str, timeout=1.0) -> tuple:
+    def request(self, msg_name: str, *args, timeout=1.0):
         """
         Fait une requête et attend la réponse.
         """
-        msg = self.reg[msg_name] # ajouter if not in reg
-        payload = struct.pack("<B", msg[0]) # erreur de format
-        self.send(payload)
+        self.send(msg_name, *args)
 
-        format = "<" + self.reg[msg_name][1]
+        format = "<" + self.reg[msg_name][1][2:]
         t0 = time.time()
         while time.time() - t0 < timeout:
             self.stack.process()
