@@ -1,7 +1,10 @@
 #!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
 
 from CanBus import CanBus
 import tkinter as tk
+
 
 reg_asserv = {
     "move" : (0, "<Bd"),
