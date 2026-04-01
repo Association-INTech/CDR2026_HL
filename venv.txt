@@ -10,3 +10,24 @@ pupil-apriltags import le meme
 
 Lidar
 hokuyolx import hokuyolx 
+
+
+
+
+
+
+
+
+
+
+brouillon :
+sudo modprobe ??????
+
+uv 
+
+resume express
+python3 -m venv canenv
+source canenv/bin/activate
+canenv/bin/python -m pip install python-can
+canenv/bin/python -m pip install git+https://github.com/pylessard/python-can-isotp.git
+canenv/bin/python can_final.py
