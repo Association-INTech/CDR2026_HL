@@ -31,3 +31,11 @@ source canenv/bin/activate
 canenv/bin/python -m pip install python-can
 canenv/bin/python -m pip install git+https://github.com/pylessard/python-can-isotp.git
 canenv/bin/python can_final.py
+https://hokuyolx.readthedocs.io/en/latest/
+
+si choix des bloc :
+	prends 2 photos en place et renversees
+	si 2 jaunes assures laisser les autres 
+	sinon prend ""
+	privilegier la photo avec plus de jaunes moins de "", droite
+
