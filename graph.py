@@ -80,7 +80,7 @@ class Graph:
     
 
 class GridGraph(Graph):
-    def __init__(self,width,height,scale=1):
+    def __init__(self,width,height,scale=1,rotate_buffer=0):
         self.scale=scale
         self.realWidth=width
         self.realHeight=height
@@ -88,27 +88,28 @@ class GridGraph(Graph):
         self.height=height//self.scale
         self.NbRotations=4
         super().__init__(self.width*self.height*self.NbRotations+1)
-        self.setupGrid()
+        self.setupGrid(rotate_buffer//scale)
         self.backup=copy.deepcopy(self.weights)
         self.forbidden=[]
     
-    def setupGrid(self):
+    def setupGrid(self,rotate_buffer):
         forward_speed=1*self.scale
         backward_speed=2*self.scale
         rotation_speed=100000
         for x in range(self.width):
             for y in range(self.height):
                 for angle in range(self.NbRotations):
-                    self.add_edge(
-                        self.getNodeID(x,y,angle),
-                        self.getNodeID(x,y,(angle+1)%self.NbRotations),
-                        rotation_speed
-                        )
-                    self.add_edge(
-                        self.getNodeID(x,y,(angle+1)%self.NbRotations),
-                        self.getNodeID(x,y,(angle)%self.NbRotations),
-                        rotation_speed
-                        )
+                    if x>rotate_buffer and y>rotate_buffer and self.width-x>rotate_buffer and self.height-y>rotate_buffer:
+                        self.add_edge(
+                            self.getNodeID(x,y,angle),
+                            self.getNodeID(x,y,(angle+1)%self.NbRotations),
+                            rotation_speed
+                            )
+                        self.add_edge(
+                            self.getNodeID(x,y,(angle+1)%self.NbRotations),
+                            self.getNodeID(x,y,(angle)%self.NbRotations),
+                            rotation_speed
+                            )
                     
                 if x < self.width -1:
                     self.add_edge(
@@ -229,15 +230,17 @@ class GridGraph(Graph):
 
 
 if __name__ == "__main__":
-    test=GridGraph(3000,2000,scale=10)
+    test=GridGraph(3000,2000,scale=10,rotate_buffer=50)
     print("Created Graph")
+    print(f"84069 => {test.getPos(84069)}")
+    print(f"144041 => {test.getPos(144041)}")
     #print(test.adjency_maxtrix)
     #print(test.getNodeIDFromPos(Position(0,0,0)),test.getNodeIDFromPos(Position(0,0,180)))
     print(test.get_weight(test.getNodeIDFromPos(Position(0,0,0)),test.getNodeIDFromPos(Position(0,0,90))))
-    print(test.get_weight(test.getNodeIDFromPos(Position(0,0,90)),test.getNodeIDFromPos(Position(0,0,0))))
+    print(test.get_weight(test.getNodeIDFromPos(Position(100,100,90)),test.getNodeIDFromPos(Position(100,100,0))))
 
-    test.addForbidden(500,1000,0,1000)
-    print(test.getShortestPath(test.getNodeIDFromPos(Position(0,100,0)),test.getNodeIDFromPos(Position(2000,100,90))))
-    print([f"{pos.x},{pos.y}" for pos in test.getShortestPathPos(Position(0,100,0),Position(2000,100,90))])
+    #test.addForbidden(500,1000,0,1000)
+    #print(test.getShortestPath(test.getNodeIDFromPos(Position(100,0,90)),test.getNodeIDFromPos(Position(2000,1000,90))))
+    print([f"{pos.x},{pos.y}" for pos in test.getShortestPathPos(Position(100,100,90),Position(100,100,0))])
 
     
