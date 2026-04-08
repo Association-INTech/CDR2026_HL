@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 
 """
-Envoi d'un unique message de 8 octets'
+Envoi d'un unique message de 8 octets sur le bus, pour lire le message avec
+    un autre CAN, utiliser la commande candump afin de tester la communication
 """
 
 import can
