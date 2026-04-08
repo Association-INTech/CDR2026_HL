@@ -40,38 +40,32 @@ class Rectangle:
         surface.blit(rotated_image, rotated_rect.topleft)
 
 class Robot():
-    def __init__(self, x, y, color,angle=0, speed=250):
+    def __init__(self, x, y, color, angle=0, speed=250):
         self.x = x
         self.y = y
         self.color = color
-        self.angle=angle
-        self.speed=speed
+        self.angle = angle
+        self.speed = speed
         
-        self.REF_WIDTH = 376
-        self.REF_HEIGHT = 200
+        self.REF_WIDTH = 310
+        self.REF_HEIGHT = 175
         
-        self.INS_WIDTH = 211
+        if self.angle % 180 == 0:
+            self.width, self.height = self.REF_HEIGHT, self.REF_WIDTH
+        else:
+            self.width, self.height = self.REF_WIDTH, self.REF_HEIGHT
 
+        self.move_remaining = 0
+        self.reverse = False
+        self.rect = pygame.Rect(self.x, self.y, self.width, self.height)
+        
+    def getCenterPos(self):
         if self.angle==0 or self.angle==180:
             self.width = self.REF_HEIGHT
             self.height = self.REF_WIDTH
         else:
             self.width = self.REF_WIDTH
             self.height = self.REF_HEIGHT
-
-        self.isTopDown=True
-        self.isBottomDown=True
-
-        self.move_remaining = 0
-        self.reverse = False
-
-    def getCenterPos(self):
-        if self.angle==0 or self.angle==180:
-            width = self.REF_HEIGHT
-            height = self.REF_WIDTH
-        else:
-            width = self.REF_WIDTH
-            height = self.REF_HEIGHT
 
         center_x = self.x + self.width // 2
         center_y = self.y + self.height // 2
@@ -131,11 +125,11 @@ class Robot():
         
         for i in self.listAllEaten(groupList):
             groupList[i].rotate(rotateAngle)
-
-        
-        self.angle=(self.angle+rotateAngle) % 360
         
         center_x,center_y = self.getCenterPos()
+        
+        self.angle=(self.angle+rotateAngle) % 360
+
 
         if rotateAngle % 180 != 0:
             self.width, self.height = self.height, self.width
@@ -144,14 +138,38 @@ class Robot():
         self.y = center_y - self.height//2
 
         #print(f"{center_x},{center_y} => {self.getCenterPos()}")
-        
-        
+
+    def updateRect(self):
+        self.rect = pygame.Rect(self.x, self.y, self.width, self.height)
+
+    def draw(self, surface):
+        self.updateRect()
+        pygame.draw.rect(surface, self.color, self.rect)
+
+    def collidelistallNutBoxGroup(self, group):
+        rects = [nutBox.rect() for nutBox in group]
+        self.updateRect()
+        return self.rect.collidelistall(rects)    
+    
+    def listAllEaten(self,group):
+        rects = [nutBox.rect() for nutBox in group]
+        self.updateRect()
+        return self.rect.collidelistall(rects)
+
+
+class RobotMagicoBus(Robot):
+    def __init__(self, x, y, color,angle=0, speed=250):
+        super().__init__(x, y, color,angle, speed)
+        self.INS_WIDTH = 170
+        self.isTopDown=True
+        self.isBottomDown=True
+
 
     def updateRect(self):
         self.rect=pygame.Rect(self.x,self.y,self.width,self.height)        
         
         sideLength=(self.REF_WIDTH-self.INS_WIDTH)//2
-        thickness=4
+        thickness=4 #thickness of the barriers
 
         if self.angle==0:
             self.rect=pygame.Rect(self.x,self.y,self.REF_HEIGHT,self.REF_WIDTH)         
@@ -202,11 +220,6 @@ class Robot():
         if self.isTopDown: collisions+=self.topRect.collidelistall(rects)
         return list(set(collisions))
     
-    def listAllEaten(self,group):
-        rects = [nutBox.rect() for nutBox in group]
-        self.updateRect()
-        return self.rect.collidelistall(rects)
-
 
 class NutBox(Rectangle):
     WIDTH=150
@@ -306,7 +319,7 @@ class Simulation:
             y=100,
             color=(255, 0, 0),
             speed=250,
-            angle=0  
+            angle=90  
         )
         '''
         self.nutBoxes = [
