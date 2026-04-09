@@ -1,6 +1,6 @@
+#!usr/bin/env python
+
 import cv2
-
-
 
 cap = cv2.VideoCapture(0, cv2.CAP_V4L2)
 aruco_dict = cv2.aruco.getPredefinedDictionary(cv2.aruco.DICT_4X4_50)
