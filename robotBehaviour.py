@@ -167,8 +167,9 @@ class NutBox():
 class GetLoc(py_trees.behaviour.Behaviour):
     """Obtient le prochain endroit"""
 
-    def __init__(self, name: str):
+    def __init__(self, name: str, robot):
         super().__init__(name)
+        self.robot = robot
         self.blackboard = self.attach_blackboard_client(name="GetLoc")
         self.blackboard.register_key(key="loc", access=py_trees.common.Access.WRITE)
         self.queue = []
@@ -188,9 +189,10 @@ class GetLoc(py_trees.behaviour.Behaviour):
 class GoToLoc(py_trees.decorators.PassThrough):
     """Va à l'endroit choisi"""
 
-    def __init__(self, name: str):
+    def __init__(self, name: str, robot):
         self.main_sequence = py_trees.composites.Sequence(name+"MainSequence", True)
         super().__init__(name,self.main_sequence)
+        self.robot = robot
         self.blackboard = self.attach_blackboard_client(name="GoToLoc")
         self.blackboard.register_key(key="loc", access=py_trees.common.Access.READ)
         self.blackboard.register_key(key="plan", access=py_trees.common.Access.WRITE)
@@ -204,7 +206,7 @@ class GoToLoc(py_trees.decorators.PassThrough):
         steps = []
         stepsBT = []
 
-        currentPos = robot.getPos()
+        currentPos = self.robot.getPos()
         dx = self.blackboard.loc.x - currentPos.x
         dy = self.blackboard.loc.y - currentPos.y
 
@@ -212,6 +214,7 @@ class GoToLoc(py_trees.decorators.PassThrough):
             steps.append((step_class.__name__, value))
             stepsBT.append(step_class(
                 name=f"{step_class.__name__}_{value}",
+                robot=self.robot,
                 value=value
             ))
 
@@ -254,13 +257,14 @@ class GoToLoc(py_trees.decorators.PassThrough):
         steps = []
         stepsBT = []
 
-        currentPos = robot.getPos()
+        currentPos = self.robot.getPos()
         targetPos = Position(self.blackboard.loc.x,self.blackboard.loc.y,self.blackboard.loc.angle)
 
         def addStep(step_class, value):
             steps.append((step_class.__name__, value))
             stepsBT.append(step_class(
                 name=f"{step_class.__name__}_{value}",
+                robot=self.robot,
                 value=value
             ))
         
@@ -273,7 +277,7 @@ class GoToLoc(py_trees.decorators.PassThrough):
             elif (diff.x==0 and diff.y==0):
                 return (Rotate,diff.angle)
 
-        path=robot.graph.getShortestPathPos(currentPos,targetPos)
+        path=self.robot.graph.getShortestPathPos(currentPos,targetPos)
 
         raw_steps = []
         prev_class =  None
@@ -300,180 +304,159 @@ class GoToLoc(py_trees.decorators.PassThrough):
 class Rotate(py_trees.behaviour.Behaviour):
     """Rotate robot by a given angle"""
 
-    def __init__(self, name: str, value: float) -> None:
+    def __init__(self, name: str, robot, value: float) -> None:
         super().__init__(name)
+        self.robot = robot
         self.angle = value
 
     def initialise(self):
         self.start_time=time.time()
-        self.id=robot.start_rotate(self.angle)
+        self.id=self.robot.start_rotate(self.angle)
 
     def update(self):
         if time.time() - self.start_time > 10:
             return py_trees.common.Status.FAILURE
-        if robot.is_moving():
+        if self.robot.is_moving():
             return py_trees.common.Status.RUNNING
         return py_trees.common.Status.SUCCESS        
                
 class Move(py_trees.behaviour.Behaviour):
     """Move robot forward by a given distance"""
 
-    def __init__(self, name: str, value: float) -> None:
+    def __init__(self, name: str, robot, value: float) -> None:
         super().__init__(name)
+        self.robot = robot
         self.distance = value
 
     def initialise(self):
         self.start_time=time.time()
-        self.id=robot.start_move(self.distance)
+        self.id=self.robot.start_move(self.distance)
 
     def update(self):
         if time.time() - self.start_time > 10:
             return py_trees.common.Status.FAILURE
-        if robot.is_moving():
+        if self.robot.is_moving():
             return py_trees.common.Status.RUNNING
         return py_trees.common.Status.SUCCESS
 
 class TopBarrier(py_trees.behaviour.Behaviour):
-    def __init__(self, name: str, state: bool) -> None:
+    def __init__(self, name: str, robot, state: bool) -> None:
         super().__init__(name)
+        self.robot = robot
         self.state = state
 
     def initialise(self):
         self.start_time=time.time()
-        self.id=robot.top_barrier(self.state)
+        self.id=self.robot.top_barrier(self.state)
 
     def update(self):
         if time.time() - self.start_time > 10:
             return py_trees.common.Status.FAILURE
-        if robot.is_moving():
+        if self.robot.is_moving():
             return py_trees.common.Status.RUNNING
         return py_trees.common.Status.SUCCESS
 
 class BottomBarrier(py_trees.behaviour.Behaviour):
-    def __init__(self, name: str, state: bool) -> None:
+    def __init__(self, name: str, robot, state: bool) -> None:
         super().__init__(name)
+        self.robot = robot
         self.state = state
 
     def initialise(self):
         self.start_time=time.time()
-        self.id=robot.bottom_barrier(self.state)
+        self.id=self.robot.bottom_barrier(self.state)
 
     def update(self):
         if time.time() - self.start_time > 10:
             return py_trees.common.Status.FAILURE
-        if robot.is_moving():
+        if self.robot.is_moving():
             return py_trees.common.Status.RUNNING
         return py_trees.common.Status.SUCCESS
 
-class ProcedureChasseNeige(py_trees.decorators.PassThrough):
-    def __init__(self, name: str,):
-        self.main_sequence = py_trees.composites.Sequence(name+"MainSequence", True)
-        super().__init__(name,self.main_sequence)
-        self.main_sequence.add_child(GetClosestNoisette(name="get_Noisette_location"))
-        self.main_sequence.add_child(GoToLoc(name="go_to_noisette"))
-        self.main_sequence.add_child(TopBarrier(name="lift_top",state=False))
-        self.main_sequence.add_child(BottomBarrier(name="drop_bot",state=True))
-        self.main_sequence.add_child(Move(name="push_noisette",value=200))
-        self.main_sequence.add_child(TopBarrier(name="drop_top",state=True))
-        self.main_sequence.add_child(UpdateNoisettePos(name="RemoveForbidden",doNewForbidden=False))
-        self.main_sequence.add_child(GetClosestPantry(name="get_pantry_location"))
-        self.main_sequence.add_child(GoToLoc(name="go_to_pantry"))
-        self.main_sequence.add_child(BottomBarrier(name="lift_bot",state=False))
-        self.main_sequence.add_child(UpdateNoisettePos(name="ChangeForbidden"))
-        #self.main_sequence.add_child(Move(name="go_back",value=300))
-
 class ProcedurePushNoisetteMagicoBus(py_trees.decorators.PassThrough):
-    def __init__(self, name: str,):
+    def __init__(self, name: str, robot):
         self.main_sequence = py_trees.composites.Sequence(name+"MainSequence", True)
         super().__init__(name,self.main_sequence)
-        self.main_sequence.add_child(GetClosestNoisette(name="get_Noisette_location"))
-        self.main_sequence.add_child(GoToLoc(name="go_to_noisette"))
-        self.main_sequence.add_child(TopBarrier(name="lift_top",state=False))
-        self.main_sequence.add_child(BottomBarrier(name="drop_bot",state=True))
-        self.main_sequence.add_child(Move(name="push_noisette",value=200))
-        self.main_sequence.add_child(TopBarrier(name="drop_top",state=True))
-        self.main_sequence.add_child(UpdateNoisettePos(name="RemoveForbidden",doNewForbidden=False))
-        self.main_sequence.add_child(GetClosestPantry(name="get_pantry_location"))
-        self.main_sequence.add_child(GoToLoc(name="go_to_pantry"))
-        self.main_sequence.add_child(BottomBarrier(name="lift_bot",state=False))
-        self.main_sequence.add_child(UpdateNoisettePos(name="ChangeForbidden"))
-        #self.main_sequence.add_child(Move(name="go_back",value=300))
+        self.main_sequence.add_child(GetClosestNoisette(name="get_Noisette_location", robot=robot))
+        self.main_sequence.add_child(GoToLoc(name="go_to_noisette", robot=robot))
+        self.main_sequence.add_child(TopBarrier(name="lift_top", robot=robot, state=False))
+        self.main_sequence.add_child(BottomBarrier(name="drop_bot", robot=robot, state=True))
+        self.main_sequence.add_child(Move(name="push_noisette", robot=robot, value=200))
+        self.main_sequence.add_child(TopBarrier(name="drop_top", robot=robot, state=True))
+        self.main_sequence.add_child(UpdateNoisettePos(name="RemoveForbidden", robot=robot, doNewForbidden=False))
+        self.main_sequence.add_child(GetClosestPantry(name="get_pantry_location", robot=robot))
+        self.main_sequence.add_child(GoToLoc(name="go_to_pantry", robot=robot))
+        self.main_sequence.add_child(BottomBarrier(name="lift_bot", robot=robot, state=False))
+        self.main_sequence.add_child(UpdateNoisettePos(name="ChangeForbidden", robot=robot))
+        #self.main_sequence.add_child(Move(name="go_back", robot=robot, value=300))
 
 class ProcedurePushNoisetteChasseNeige(py_trees.decorators.PassThrough):
-    def __init__(self, name: str,):
+    def __init__(self, name: str, robot):
         self.main_sequence = py_trees.composites.Sequence(name+"MainSequence", True)
         super().__init__(name,self.main_sequence)
-        self.main_sequence.add_child(GetNextNoisette(name="get_Noisette_location"))
-        self.main_sequence.add_child(GoToLoc(name="go_to_noisette"))
-        self.main_sequence.add_child(Move(name="push_noisette",value=200))
-        self.main_sequence.add_child(UpdateNoisettePos(name="ChangeForbidden"))
-        self.main_sequence.add_child(Move(name="go_back",value=-300))
+        self.main_sequence.add_child(GetNextNoisette(name="get_Noisette_location", robot=robot))
+        self.main_sequence.add_child(GoToLoc(name="go_to_noisette", robot=robot))
+        self.main_sequence.add_child(Move(name="push_noisette", robot=robot, value=200))
+        self.main_sequence.add_child(UpdateNoisettePos(name="ChangeForbidden", robot=robot))
+        self.main_sequence.add_child(Move(name="go_back", robot=robot, value=-300))
 
 
 class GetNextNoisette(GetLoc):
-    def __init__(self, name: str, ):
-        super().__init__(name)
+    def __init__(self, name: str, robot):
+        super().__init__(name, robot)
         order=[2,3,1,0]
-        self.queue=[robot.noisettes[i] for i in order] 
+        self.queue=[self.robot.noisettes[i] for i in order] 
         self.blackboard.register_key(key="nutBox", access=py_trees.common.Access.WRITE)
         
     def getNextLoc(self):
-        robot.update()
+        self.robot.update()
         res=self.queue.pop(0)
         self.blackboard.nutBox=res
         return res.getPushpos(buffer=0)
 
 class GetClosestNoisette(GetLoc):
-    def __init__(self, name: str, ):
-        super().__init__(name)
+    def __init__(self, name: str, robot):
+        super().__init__(name, robot)
         self.blackboard.register_key(key="nutBox", access=py_trees.common.Access.WRITE)
-        #self.noisettes=[Position(100, 700,90),Position(100, 1500,90), Position(1050, 1125,0),Position(1000, 1750,0),Position(2750, 700,90),Position(2750, 1500,90),Position(1750, 1125,0),Position(1800, 1750,0)]
-        #self.queue=[noisette.getPushpos(buffer=0) for noisette in robot.noisettes]
-        #self.queue=[Position(2800, 1200,0)]
-        self.queue=robot.noisettes
+        self.queue=self.robot.noisettes
         
     def getNextLoc(self):
-        robot.update()
-        #self.queue = sorted(self.queue, key=lambda nb: robot.graph.getDist(robot.pos, nb.pos))
-        self.queue = sorted(self.queue, key=lambda nb: robot.pos.distance(nb.pos))
+        self.robot.update()
+        self.queue = sorted(self.queue, key=lambda nb: self.robot.pos.distance(nb.pos))
         res=self.queue.pop(0)
         self.blackboard.nutBox=res
         return res.getPushpos(buffer=0)
 
 class GetClosestPantry(GetLoc):
-    def __init__(self, name: str, ):
-        super().__init__(name)
+    def __init__(self, name: str, robot):
+        super().__init__(name, robot)
         self.blackboard.register_key(key="nutBox", access=py_trees.common.Access.WRITE)
-        #self.noisettes=[Position(100, 700,90),Position(100, 1500,90), Position(1050, 1125,0),Position(1000, 1750,0),Position(2750, 700,90),Position(2750, 1500,90),Position(1750, 1125,0),Position(1800, 1750,0)]
-        #self.queue=[noisette.getPushpos(buffer=0) for noisette in robot.noisettes]
-        #self.queue=[Position(2800, 1200,0)]
-        self.queue=robot.pantries
+        self.queue=self.robot.pantries
 
     def getNextLoc(self):
-        robot.update()
-        #self.queue = sorted(self.queue, key=lambda nb: robot.graph.getDist(robot.pos, nb.pos))
-        self.queue = sorted(self.queue, key=lambda nb: robot.pos.distance(nb))
+        self.robot.update()
+        self.queue = sorted(self.queue, key=lambda nb: self.robot.pos.distance(nb))
         return super().getNextLoc()
 
 
 class UpdateNoisettePos(py_trees.behaviour.Behaviour):
     """Updates the NutBox position after being pushed"""
 
-    def __init__(self, name: str, doNewForbidden=True):
+    def __init__(self, name: str, robot, doNewForbidden=True):
         super().__init__(name)
+        self.robot = robot
         self.blackboard = self.attach_blackboard_client(name="UpdateNoisettePos")
         self.blackboard.register_key(key="nutBox", access=py_trees.common.Access.READ)
         self.doNewForbidden=doNewForbidden
         
     def update(self):
         noisette = self.blackboard.nutBox
-        #noisette.pos=robot.getNutBoxPosMagicoBus()
-        noisette.setCenter(robot.getNutBoxPosChasseNeige())
-        robot.graph.removeForbidden(noisette.index)
+        noisette.setCenter(self.robot.getNutBoxPosChasseNeige())
+        self.robot.graph.removeForbidden(noisette.index)
         if self.doNewForbidden:
             buffer=75
             xmin, xmax, ymin, ymax = noisette.getForbiddenZone(buffer=buffer+Robot.WIDTH // 2)
-            noisette.index = robot.graph.addForbidden(xmin, xmax, ymin, ymax)
+            noisette.index = self.robot.graph.addForbidden(xmin, xmax, ymin, ymax)
         return py_trees.common.Status.SUCCESS
     
 
@@ -483,7 +466,7 @@ if __name__ == "__main__":
     root = py_trees.composites.Sequence("MainSequence", memory=True)
     #getA = GetLoc(name="movetoA")
     #movetoA = GoToLoc(name="movetoA")
-    procedure = ProcedurePushNoisetteChasseNeige(name="main")
+    procedure = ProcedurePushNoisetteChasseNeige(name="main", robot=robot)
 
     root.add_children([
         procedure
