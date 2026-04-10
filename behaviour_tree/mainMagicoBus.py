@@ -5,6 +5,23 @@ from pathlib import Path
 if __package__ is None or __package__ == "":
     sys.path.append(str(Path(__file__).resolve().parent.parent))
 
+import logging
+import os
+
+# Setup py_trees file logging
+log_dir = "logs"
+if not os.path.exists(log_dir):
+    os.makedirs(log_dir)
+
+logging.basicConfig(
+    level=logging.DEBUG,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.FileHandler(os.path.join(log_dir, 'py_trees.log')),
+        logging.StreamHandler()
+    ]
+)
+
 from behaviour_tree.utilities.robot import robotMagicoBus
 from behaviour_tree.behaviours.strategieMagicoBus import ProcedurePushNoisette
 from behaviour_tree.simulation.simulation import SimRobotMagicoBus

@@ -16,6 +16,7 @@ class GetLoc(py_trees.behaviour.Behaviour):
 
     def update(self):
         if len(self.queue)==0:
+            self.logger.debug("No more loc in queue")
             return py_trees.common.Status.FAILURE
         self.blackboard.loc=self.getNextLoc()
         self.logger.debug(f"Going to {str(self.blackboard.loc)}")
@@ -154,6 +155,7 @@ class Rotate(py_trees.behaviour.Behaviour):
 
     def update(self):
         if time.time() - self.start_time > 10:
+            self.logger.debug(f"Rotate action timeout: {self.angle}° in {time.time() - self.start_time:.2f}s")
             return py_trees.common.Status.FAILURE
         if self.robot.is_moving():
             return py_trees.common.Status.RUNNING
@@ -173,6 +175,7 @@ class Move(py_trees.behaviour.Behaviour):
 
     def update(self):
         if time.time() - self.start_time > 10:
+            self.logger.debug(f"Move action timeout: {self.distance}mm in {time.time() - self.start_time:.2f}s")
             return py_trees.common.Status.FAILURE
         if self.robot.is_moving():
             return py_trees.common.Status.RUNNING
@@ -190,6 +193,7 @@ class TopBarrier(py_trees.behaviour.Behaviour):
 
     def update(self):
         if time.time() - self.start_time > 10:
+            self.logger.debug("Top Barrier action timeout")
             return py_trees.common.Status.FAILURE
         if self.robot.is_moving():
             return py_trees.common.Status.RUNNING
@@ -207,6 +211,7 @@ class BottomBarrier(py_trees.behaviour.Behaviour):
 
     def update(self):
         if time.time() - self.start_time > 10:
+            self.logger.debug("Bottom Barrier action timeout")
             return py_trees.common.Status.FAILURE
         if self.robot.is_moving():
             return py_trees.common.Status.RUNNING
@@ -261,6 +266,7 @@ class GetSide(py_trees.behaviour.Behaviour):
         #TODO Replace with switch on the robot
         #TODO setup coordinates with LL
         self.blackboard.side = (pos.x < 1500)  # True: left/False: right
+        self.logger.debug(f"Side: {'left' if self.blackboard.side else 'right'}")
         return py_trees.common.Status.SUCCESS
 
 
@@ -274,8 +280,10 @@ class CheckTime(py_trees.behaviour.Behaviour):
 
     def update(self):
         elapsed = time.time() - self.robot.start_time
+        self.logger.debug(f"Time: {elapsed:.2f}s elapsed")
         if elapsed < self.end_time:
             return py_trees.common.Status.SUCCESS
+        self.logger.debug(f"Time limit reached: {elapsed:.2f}s elapsed, limit was {self.end_time}s")
         return py_trees.common.Status.FAILURE
 
 

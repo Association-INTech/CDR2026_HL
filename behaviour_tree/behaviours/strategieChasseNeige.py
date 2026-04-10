@@ -19,8 +19,6 @@ class setup(py_trees.behaviour.Behaviour):
         self.robot.noisettes[0].push_pos=self.robot.noisettes[0].getPushpos().add(Position(100,NutBox.HEIGHT*NutBox.BOX_COUNT+self.robot.HEIGHT//2,180))
         self.robot.noisettes[1].push_pos=self.robot.noisettes[1].getPushpos().add(Position(100,NutBox.HEIGHT*NutBox.BOX_COUNT+self.robot.HEIGHT//2,180))
         self.robot.noisettes[3].push_pos=self.robot.noisettes[3].getPushpos().add(Position(0,-100,0))
-        print(f"noisette 0 push pos: {self.robot.noisettes[0].push_pos}")
-        print(f"noisette 1 push pos: {self.robot.noisettes[1].push_pos}")        
         
         pushDistances = [
             700,   #0

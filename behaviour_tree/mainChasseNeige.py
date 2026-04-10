@@ -5,6 +5,23 @@ from pathlib import Path
 if __package__ is None or __package__ == "":
     sys.path.append(str(Path(__file__).resolve().parent.parent))
 
+import logging
+import os
+
+# Setup py_trees file logging
+log_dir = "logs"
+if not os.path.exists(log_dir):
+    os.makedirs(log_dir)
+
+logging.basicConfig(
+    level=logging.DEBUG,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.FileHandler(os.path.join(log_dir, 'py_trees.log')),
+        logging.StreamHandler()
+    ]
+)
+
 import py_trees
 from behaviour_tree.utilities.robot import robotChasseNeige
 from behaviour_tree.behaviours.strategieChasseNeige import ProcedureNoisette, setup
@@ -15,7 +32,11 @@ from behaviour_tree.utilities.position import Position
 if __name__ == "__main__":
     startPos = Position(150, 100, 90)
     order=[2,3,0] #for left side
+    timeStartGoBack= 80 # seconds until robot should start going back to start position
     
+    logger = logging.getLogger(__name__)
+    logger.info("===== Main Program Started =====")
+    logger.info(f"Start position: {startPos}, Order: {order}, Go-back time limit: {timeStartGoBack}s")
     
     simRobot = SimRobot(
         pos=startPos,
@@ -30,7 +51,7 @@ if __name__ == "__main__":
     root.add_child(setup(name="setup", order=order, robot=robot))
 
     procedure_limited_time = py_trees.composites.Sequence("procedure_limited_time", memory=True)
-    procedure_limited_time.add_child(CheckTime(name="check_time_under_limit", robot=robot, end_time=5))
+    procedure_limited_time.add_child(CheckTime(name="check_time_under_limit", robot=robot, end_time=timeStartGoBack))
     procedure_limited_time.add_child(ProcedureNoisette(name="procedure_noisette", robot=robot))
 
     run_while_time_ok = py_trees.decorators.Repeat(
