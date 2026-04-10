@@ -195,7 +195,8 @@ class GridGraph(Graph):
                     current = self.getNodeIDFromPos(Position(x,y,angle_degrees))
                     neighbors=self.get_neighbors(current)
                     for neighbor,weight in neighbors:
-                        self.add_edge(current,neighbor,val*weight)
+                        original_weight = self.backup.get((current, neighbor), weight)
+                        self.add_edge(current,neighbor,val*original_weight)
 
     
     def addForbidden(self,xmin,xmax,ymin,ymax,val=1000000,index=None):

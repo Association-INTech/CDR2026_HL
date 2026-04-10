@@ -12,13 +12,13 @@ class Position:
     def difference(self,pos):
         x=self.x-pos.x
         y=self.y-pos.y
-        angle=self.angle-pos.angle
+        angle=(self.angle-pos.angle)%360
         return Position(x,y,angle)
 
     def add(self,pos):
         x=self.x+pos.x
         y=self.y+pos.y
-        angle=self.angle-pos.angle
+        angle=(self.angle+pos.angle)%360
         return Position(x,y,angle)
 
 

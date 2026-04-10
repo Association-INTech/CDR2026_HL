@@ -3,7 +3,7 @@ from position import Position
 from robot import Robot
 from basicBehaviours import GetLoc, Move, UpdateNoisettePos, TopBarrier, BottomBarrier, GoToLoc
 
-class ProcedurePushNoisetteMagicoBus(py_trees.decorators.PassThrough):
+class ProcedurePushNoisette(py_trees.decorators.PassThrough):
     def __init__(self, name: str, robot):
         self.main_sequence = py_trees.composites.Sequence(name+"MainSequence", True)
         super().__init__(name,self.main_sequence)

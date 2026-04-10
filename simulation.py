@@ -43,6 +43,8 @@ class SimRobot():
         self.pos = pos
         self.color = color
         self.speed = speed
+        self.area_width = 3000
+        self.area_height = 2000
         
         self.REF_WIDTH = 310
         self.REF_HEIGHT = 175
@@ -55,6 +57,14 @@ class SimRobot():
         self.move_remaining = 0
         self.reverse = False
         self.rect = pygame.Rect(self.pos.x, self.pos.y, self.width, self.height)
+
+    def set_bounds(self, width, height):
+        self.area_width = width
+        self.area_height = height
+
+    def clamp_to_bounds(self):
+        self.pos.x = max(0, min(self.pos.x, self.area_width - self.width))
+        self.pos.y = max(0, min(self.pos.y, self.area_height - self.height))
         
     def getCenterPos(self):
         if self.pos.angle == 0 or self.pos.angle == 180:
@@ -81,6 +91,7 @@ class SimRobot():
         dy = coef * self.speed * dt * math.sin(math.radians(self.pos.angle))
         self.pos.x += dx
         self.pos.y += dy
+        self.clamp_to_bounds()
 
         collide = self.collidelistallNutBoxGroup(groupList)
         
@@ -110,6 +121,7 @@ class SimRobot():
 
         self.pos.x += dx
         self.pos.y += dy
+        self.clamp_to_bounds()
         self.move_remaining -= abs(step)
 
         print(f"Step: {step}")
@@ -132,6 +144,7 @@ class SimRobot():
 
         self.pos.x = center.x - self.width // 2
         self.pos.y = center.y - self.height // 2
+        self.clamp_to_bounds()
 
     def updateRect(self):
         self.rect = pygame.Rect(self.pos.x, self.pos.y, self.width, self.height)
@@ -392,7 +405,12 @@ class Simulation:
                     self.robot.isTopDown = not self.robot.isTopDown
                 if event.key == pygame.K_b:
                     self.robot.isBottomDown = not self.robot.isBottomDown
-
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                if event.button == 1:  # Left Click
+                    mouse_x, mouse_y = event.pos
+                    x = mouse_x / self.scale
+                    y = mouse_y / self.scale
+                    print(f"Clicked : x={x:.2f}, y={y:.2f}")
 
     def update(self):
         self.robot.handle_input(self.dt, self.nutBoxGroups)

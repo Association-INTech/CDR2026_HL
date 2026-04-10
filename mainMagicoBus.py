@@ -1,5 +1,5 @@
 from robot import robotMagicoBus
-from strategieMagicoBus import ProcedurePushNoisetteMagicoBus
+from strategieMagicoBus import ProcedurePushNoisette
 from simulation import SimRobotMagicoBus
 from position import Position
 
@@ -12,5 +12,5 @@ if __name__ == "__main__":
     )
     robot = robotMagicoBus(pos=startPos, simRobot=simRobot)
 
-    root = ProcedurePushNoisetteMagicoBus("PushNoisette", robot)
+    root = ProcedurePushNoisette("PushNoisette", robot)
     robot.startBT(root, robot)

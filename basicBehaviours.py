@@ -9,7 +9,7 @@ class GetLoc(py_trees.behaviour.Behaviour):
     def __init__(self, name: str, robot):
         super().__init__(name)
         self.robot = robot
-        self.blackboard = self.attach_blackboard_client(name="GetLoc")
+        self.blackboard = self.attach_blackboard_client(name=name)
         self.blackboard.register_key(key="loc", access=py_trees.common.Access.WRITE)
         self.queue = []
         self.queue.append(Position(0,0,0))
@@ -32,7 +32,7 @@ class GoToLoc(py_trees.decorators.PassThrough):
         self.main_sequence = py_trees.composites.Sequence(name+"MainSequence", True)
         super().__init__(name,self.main_sequence)
         self.robot = robot
-        self.blackboard = self.attach_blackboard_client(name="GoToLoc")
+        self.blackboard = self.attach_blackboard_client(name=name)
         self.blackboard.register_key(key="loc", access=py_trees.common.Access.READ)
         self.blackboard.register_key(key="plan", access=py_trees.common.Access.WRITE)
 
@@ -230,5 +230,36 @@ class UpdateNoisettePos(py_trees.behaviour.Behaviour):
             buffer=75
             xmin, xmax, ymin, ymax = noisette.getForbiddenZone(buffer=buffer+Robot.WIDTH // 2)
             noisette.index = self.robot.graph.addForbidden(xmin, xmax, ymin, ymax)
+        return py_trees.common.Status.SUCCESS
+    
+class Start(py_trees.behaviour.Behaviour):
+    """Waits for TIRETTE signal to start"""
+
+    def __init__(self, name: str, robot):
+        super().__init__(name)
+        self.robot = robot
+
+    def update(self):
+        tirette = True #TODO replace with actual signal
+        if tirette:
+            self.robot.start_time = time.time()
+            return py_trees.common.Status.SUCCESS
+        else:
+            return py_trees.common.Status.RUNNING
+    
+class GetSide(py_trees.behaviour.Behaviour):
+    """Determine the side of the robot based on its initial position"""
+
+    def __init__(self, name: str, robot):
+        super().__init__(name)
+        self.robot = robot
+        self.blackboard = self.attach_blackboard_client(name="GetSide")
+        self.blackboard.register_key(key="side", access=py_trees.common.Access.WRITE)
+
+    def update(self):
+        pos = self.robot.getPos()
+        #TODO Replace with switch on the robot
+        #TODO setup coordinates with LL
+        self.blackboard.side = (pos.x < 1500)  # True: left/False: right
         return py_trees.common.Status.SUCCESS
     

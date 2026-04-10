@@ -22,19 +22,19 @@ class Robot:
         self.__countID=0 #variable de classe pour avoir un id
         self.start_time = time.time()
         self.logger = py_trees.logging.Logger("Robot")
-        self.graph=GridGraph(AREA_WIDTH,AREA_HEIGHT,scale=10)
+        self.graph=GridGraph(AREA_WIDTH,AREA_HEIGHT,scale=10, rotate_buffer=Robot.HEIGHT//2)
         self.comm.link_frobidden(self.graph.forbidden)
         self.graph.addForbidden(600-Robot.WIDTH//2,2400+Robot.WIDTH//2,0,450+Robot.WIDTH//2) #forbidden zone pamis
         
         self.noisettes = [
-            NutBox(Position(100, 700, 90)),
-            NutBox(Position(100, 1500, 90)),
-            NutBox(Position(1050, 1125, 0)),
-            NutBox(Position(1000, 1750, 0)),
-            NutBox(Position(1750, 1125, 0)),
-            NutBox(Position(1800, 1750, 0)),
-            NutBox(Position(2750, 700, 90)),
-            NutBox(Position(2750, 1500, 90))
+            NutBox(Position(100, 700, 90)),     #0
+            NutBox(Position(100, 1500, 90)),    #1
+            NutBox(Position(1050, 1125, 0)),    #2
+            NutBox(Position(1000, 1750, 0)),    #3
+            NutBox(Position(1800, 1750, 0)),    #4
+            NutBox(Position(1750, 1125, 0)),    #5
+            NutBox(Position(2750, 1500, 90)),   #6
+            NutBox(Position(2750, 700, 90))     #7
         ]        
         self.nutBoxGroupForbidden()
     
@@ -77,7 +77,7 @@ class Robot:
     
     def nutBoxGroupForbidden(self):
         for noisette in self.noisettes:
-            xmin,xmax,ymin,ymax=noisette.getForbiddenZone(buffer=Robot.WIDTH//2)
+            xmin,xmax,ymin,ymax=noisette.getForbiddenZone(buffer=Robot.WIDTH//2+10)
             noisette.index=self.graph.addForbidden(xmin,xmax,ymin,ymax)
 
     def getNutBoxPos(self):
@@ -129,12 +129,17 @@ class Robot:
         self.update()
         return len(self.actions)!=0 #check if actions empty
 
+class robotChasseNeige(Robot):
+    def __init__(self, pos, simRobot=None):
+        super().__init__(pos, simRobot)
+        
+    def getNutBoxPos(self):
+        self.update()
+        return self.pos.foward(Robot.HEIGHT//2)
+
 class robotMagicoBus(Robot):
     def __init__(self, pos, simRobot=None):
         super().__init__(pos, simRobot)
-        self.noisettes[0].push_pos=self.noisettes[0].getPushpos().add(Position(0,NutBox.HEIGHT*NutBox.BOX_COUNT,180))
-        self.noisettes[1].push_pos=self.noisettes[1].getPushpos().add(Position(0,NutBox.HEIGHT*NutBox.BOX_COUNT,180))
-
         
     def getNutBoxPos(self):
         self.update()
@@ -160,7 +165,8 @@ class NutBox():
         self.pos=pos #top right pos
         self.index=None
         self.push_pos = push_pos
-    
+        self.children = []
+            
     def setCenter(self,pos):
         if pos.angle%180==0:
             self.pos=pos.add(Position(NutBox.WIDTH//2,-(NutBox.HEIGHT*NutBox.BOX_COUNT)//2,0))
