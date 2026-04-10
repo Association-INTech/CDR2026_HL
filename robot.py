@@ -59,10 +59,13 @@ class Robot:
         behaviour_tree.setup(timeout=15)
 
 
-        def print_tree(tree: py_trees.trees.BehaviourTree) -> None:
-            """Print the behaviour tree and its current status."""
+        def post_tick_handler(tree: py_trees.trees.BehaviourTree) -> None:
+            """Print tree and check for completion."""
             print(py_trees.display.unicode_tree(root=tree.root, show_status=True))
-
+            
+            if tree.root.status in [py_trees.common.Status.SUCCESS, py_trees.common.Status.FAILURE]:
+                print(f"Finished | Status: {tree.root.status}")
+                raise SystemExit                
         py_trees.logging.level = py_trees.logging.Level.DEBUG
 
         try:
@@ -70,7 +73,7 @@ class Robot:
                 period_ms=100,
                 number_of_iterations=py_trees.trees.CONTINUOUS_TICK_TOCK,
                 pre_tick_handler=robot.comm.tick_simulation,
-                post_tick_handler=print_tree
+                post_tick_handler=post_tick_handler
             )
         except KeyboardInterrupt:
             behaviour_tree.interrupt()

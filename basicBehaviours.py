@@ -262,4 +262,34 @@ class GetSide(py_trees.behaviour.Behaviour):
         #TODO setup coordinates with LL
         self.blackboard.side = (pos.x < 1500)  # True: left/False: right
         return py_trees.common.Status.SUCCESS
+
+
+class CheckTime(py_trees.behaviour.Behaviour):
+    """Succeeds while elapsed match time is under a limit."""
+
+    def __init__(self, name: str, robot, end_time: float):
+        super().__init__(name)
+        self.robot = robot
+        self.end_time = end_time
+
+    def update(self):
+        elapsed = time.time() - self.robot.start_time
+        if elapsed < self.end_time:
+            return py_trees.common.Status.SUCCESS
+        return py_trees.common.Status.FAILURE
+
+
+class SetLoc(py_trees.behaviour.Behaviour):
+    """Writes a target location on the blackboard."""
+
+    def __init__(self, name: str, robot, loc: Position):
+        super().__init__(name)
+        self.robot = robot
+        self.loc = loc
+        self.blackboard = self.attach_blackboard_client(name=name)
+        self.blackboard.register_key(key="loc", access=py_trees.common.Access.WRITE)
+
+    def update(self):
+        self.blackboard.loc = self.loc
+        return py_trees.common.Status.SUCCESS
     
