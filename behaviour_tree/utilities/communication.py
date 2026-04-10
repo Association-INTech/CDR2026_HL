@@ -1,5 +1,5 @@
-from simulation import Simulation
-from position import Position
+from behaviour_tree.simulation.simulation import Simulation
+from behaviour_tree.utilities.position import Position
 from py_trees.trees import BehaviourTree
 class Comm:
     """Classe qui gère la communication avec le LL, on ajoutera les messages CAN ici"""

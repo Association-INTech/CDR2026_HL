@@ -1,8 +1,8 @@
 import py_trees
 import time
-from position import Position
-from robot import Robot, NutBox
-from basicBehaviours import GetLoc, GoToLoc, Move, TopBarrier, BottomBarrier, UpdateNoisettePos, GetSide, Start
+from behaviour_tree.utilities.position import Position
+from behaviour_tree.utilities.robot import Robot, NutBox
+from behaviour_tree.behaviours.basicBehaviours import GetLoc, GoToLoc, Move, TopBarrier, BottomBarrier, UpdateNoisettePos, GetSide, Start
 
 class setup(py_trees.behaviour.Behaviour):
     """setup strategy for the robot"""

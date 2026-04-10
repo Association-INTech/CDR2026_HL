@@ -1,4 +1,4 @@
-from position import Position
+from behaviour_tree.utilities.position import Position
 import heapq
 import math
 import copy

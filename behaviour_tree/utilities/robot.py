@@ -1,9 +1,9 @@
-from position import Position
+from behaviour_tree.utilities.position import Position
 #from communication import Comm
-from communication import CommSim as Comm
+from behaviour_tree.utilities.communication import CommSim as Comm
 import py_trees
 import time
-from graph import GridGraph
+from behaviour_tree.utilities.graph import GridGraph
 
 AREA_WIDTH = 3000
 AREA_HEIGHT = 2000

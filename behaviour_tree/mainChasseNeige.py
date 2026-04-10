@@ -1,9 +1,16 @@
+import sys
+from pathlib import Path
+
+#Fix relative imports
+if __package__ is None or __package__ == "":
+    sys.path.append(str(Path(__file__).resolve().parent.parent))
+
 import py_trees
-from robot import robotChasseNeige
-from strategieChasseNeige import ProcedureNoisette, setup
-from basicBehaviours import Start, GetSide, CheckTime, SetLoc, GoToLoc
-from simulation import SimRobot
-from position import Position
+from behaviour_tree.utilities.robot import robotChasseNeige
+from behaviour_tree.behaviours.strategieChasseNeige import ProcedureNoisette, setup
+from behaviour_tree.behaviours.basicBehaviours import Start, GetSide, CheckTime, SetLoc, GoToLoc
+from behaviour_tree.simulation.simulation import SimRobot
+from behaviour_tree.utilities.position import Position
 
 if __name__ == "__main__":
     startPos = Position(150, 100, 90)

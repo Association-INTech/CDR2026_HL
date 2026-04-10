@@ -1,7 +1,7 @@
 import py_trees
 import time
-from position import Position
-from robot import Robot
+from behaviour_tree.utilities.position import Position
+from behaviour_tree.utilities.robot import Robot
 
 class GetLoc(py_trees.behaviour.Behaviour):
     """Obtient le prochain endroit"""

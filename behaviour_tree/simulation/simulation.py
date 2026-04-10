@@ -1,7 +1,14 @@
+import sys
 import pygame
 import random
 import math
-from position import Position
+from pathlib import Path
+
+#Fix relative imports
+if __package__ is None or __package__ == "":
+    sys.path.append(str(Path(__file__).resolve().parent.parent.parent))
+
+from behaviour_tree.utilities.position import Position
 
 class Rectangle:
     def __init__(self, x, y, width, height, color, angle=0, speed=0):
@@ -307,7 +314,10 @@ class Simulation:
 
         pygame.font.init()
         self.font = pygame.font.SysFont("notomono", 30)
-        self.background = pygame.image.load("table.svg").convert()
+        
+        #Fix path for background image
+        background_path = Path(__file__).resolve().parent / "table.svg"
+        self.background = pygame.image.load(str(background_path)).convert()
 
         self.blue = (0, 128, 255)
         self.yellow = (255, 128, 0)
