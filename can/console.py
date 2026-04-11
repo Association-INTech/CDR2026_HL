@@ -1,29 +1,20 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 
 
-from CanBus import CanBus
+import CanBus
 import tkinter as tk
 
 
-reg_asserv = {
-    "move" : (0, "<Bd"),
-    "rotate" : (1, "<Bd"),
-    "set_pos" : (2, "<Bdd"),
-    "stop" : (3, "<B"),
-    "is_idle" : (16, "<B?"),
-    "get_pos" : (17, "<Bddd")
-}
+reg_asserv = CanBus.reg_asserv
+reg_action = CanBus.reg_action
 
-reg_action = {
-    "lift" : (0, "<BBBBB")
-    }
-
-limite = 16
+limite = CanBus.limite
 
 class Console:
+    
+    
     def __init__(self, root):
-        self.bus = CanBus("asserv")
+        self.bus = CanBus.CanBus("asserv")
         self.root = root
         self.root.title("Commander le robot")
 
@@ -54,10 +45,43 @@ class Console:
 
         # Prompt initial
         self.write(">>> ")
+    
+        
+    def convert_type(self, x, f: str):
+        if f == "d":
+            return float(x)
+        elif f == "?":
+            return bool(float(x))
+        elif f == "B":
+            return int(x)
+        else:
+            raise ValueError("Type non spécifé")
+        
+    def convert(self, reg, msg_name, args):
+        formate = reg[msg_name][1]
+        if reg[msg_name][0] < 16:
+            if len(formate) - len(args) != 2:
+                raise ValueError("Nombre d'arguments incorrect")
+        else:
+            if args:
+                raise ValueError("Nombre d'arguments incorrect")
+        for i in range(len(args)):
+            args[i] = self.convert_type(args[i],formate[i+2])
+        
+        
+    def close(self):
+        try:
+            self.bus.close()
+        except Exception:
+            pass
+        self.root.quit()
+        self.root.destroy()
 
     def write(self, text):
         self.text_area.insert(tk.END, text)
         self.text_area.see(tk.END)
+        
+        
 
     def process_input(self, event):
         user_input = self.entry.get()
@@ -67,59 +91,75 @@ class Console:
         
         # Quitter la console
         if user_input == "exit":
-            self.root.quit() 
-            self.root.destroy()
+            self.close()
+            return None
 
         # Envoi de la commande au CAN
-        liste = user_input.split()
-        if liste == []:
-            self.entry.delete(0, tk.END)
-            self.write(">>> ")
-            return None
-        cmd_text = liste[0]
-        liste = liste[1:]
-        if cmd_text in reg_asserv:
-            if self.bus.reg == reg_action:
-                self.write("Création d'un nouveau bus \n")
-                try: 
-                    self.bus.close()
-                finally:
-                    self.bus = CanBus("asserv")
-            if self.bus.reg[cmd_text][0] < limite:
-                try:
-                    self.bus.send(cmd_text, *liste)
-                except:
-                    self.write("Arguments incorrectes")
-            else:
-                try:
-                    self.bus.request(cmd_text, *liste)
-                except:
-                    self.write("Arguments incorrectes")
-        elif cmd_text in reg_action:
+        parsed = user_input.split()
+        if parsed != []:
+            msg_name = parsed[0]
+            args = parsed[1:]
             if self.bus.reg == reg_asserv:
-                self.write("Création d'un nouveau bus \n")
-                try: 
-                    self.bus.close()
-                finally:
-                    self.bus = CanBus("action")
-            if self.bus.reg[cmd_text][0] < limite:
+                if msg_name in reg_action:
+                    self.write("Création d'un nouveau bus\n")
+                    try:
+                        self.bus.close()
+                    finally:
+                        self.bus = CanBus.CanBus("action")
+                elif msg_name not in reg_asserv:
+                    self.write("Veuillez mettre une commande répertoriée\n")
+                    self.entry.delete(0, tk.END)
+                    self.write(">>> ")
+                    return None 
                 try:
-                    self.bus.send(cmd_text, *liste)
+                    self.convert(self.bus.reg, msg_name, args)
+                    if self.bus.reg[msg_name][0] < limite:
+                        try:
+                            self.bus.send(msg_name, *args)
+                        except:
+                            self.write("Ereur lors de l'envoi de send()\n")
+                    else:
+                        try:
+                            callback = str(self.bus.request(msg_name))
+                            self.write("depuis le LL : " + callback )
+                        except:
+                            self.write("Erreur lors de l'envoi de request()\n")
                 except:
-                    self.write("Arguments incorrectes")
+                    self.write("Arguments incorrects\n")
             else:
+                if msg_name in reg_asserv:
+                    self.write("Création d'un nouveau bus \n")
+                    try:
+                        self.bus.close()
+                    finally:
+                        self.bus = CanBus.CanBus("asserv")
+                elif msg_name not in reg_action:
+                    self.write("Veuillez mettre une commande répertoriée\n")
+                    self.entry.delete(0, tk.END)
+                    self.write(">>> ")
+                    return None 
+    
                 try:
-                    self.bus.request(cmd_text, *liste)
+                    self.convert(self.bus.reg, msg_name, args)
+                    if self.bus.reg[msg_name][0] < limite:
+                        try:
+                            self.bus.send(msg_name, *args)
+                        except:
+                            self.write("Ereur lors de l'envoi de send()\n")
+                    else:
+                        try:
+                            callback = str(self.bus.request(msg_name))
+                            self.write("depuis le LL : " + callback )
+                        except:
+                            self.write("Erreur lors de l'envoi de request()\n")
                 except:
-                    self.write("Arguments incorrectes")
-        else:
-            self.write("Veuillez mettre une commande répertoriée \n")
-            
-        return None    
+                    self.write("Arguments incorrects\n")
+                
         
         # Reset input + nouveau prompt
         self.entry.delete(0, tk.END)
         self.write(">>> ")
+        return None 
 
 # Lancement
 root = tk.Tk()

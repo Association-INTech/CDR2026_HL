@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 
 import time
 import struct
@@ -7,17 +6,19 @@ import can
 import isotp
 
 reg_asserv = {
-    "move" : (00, "<Bd"),
-    "rotate" : (01, "<Bd"),
-    "set_pos" : (02, "<Bdd"),
-    "stop" : (03, "<B"),
+    "move" : (0, "<Bd"),
+    "rotate" : (1, "<Bd"),
+    "set_pos" : (2, "<Bdd"),
+    "stop" : (3, "<B"),
     "is_idle" : (16, "<B?"),
     "get_pos" : (17, "<Bddd")
 }
 
 reg_action = {
-    "lift" : (00, "BBBB")
+    "lift" : (0, "<BBBBB")
 }
+
+limite = 16 # de 0 à 16 les messages de send et à partir de 16 request
 
 class CanBus:
 
@@ -35,9 +36,9 @@ class CanBus:
         self.can_channel = can_channel
         self.bitrate = bitrate
         # ouvre le bus CAN socketcan
-        self.bus = can.Bus(interface="socketcan", channel=can_channel, bitrate=bitrate)
+        """self.bus = can.Bus(interface="socketcan", channel=can_channel, bitrate=bitrate)
         # adresse sur 11 bits avec tx et rx
-        self.addr = isotp.Address(isotp.AddressingMode.Normal_11bits, txid=self.tx_id, rxid=self.rx_id)
+        self.addr = isotp.Address(isotp.AddressingMode.Normal_11bits, txid=self.tx, rxid=self.rx)
         # paramétres du protocole ISOTP
         self.isotp_params = { 
             "stmin": 5, # délai entre CF (ms)
@@ -53,7 +54,8 @@ class CanBus:
             address=self.addr,
             params=self.isotp_params,
             error_handler=lambda e: print("[ISO-TP ERROR]", e),
-        )
+        )"""
+        
 
 
     def close(self) -> None:
@@ -72,23 +74,33 @@ class CanBus:
             self.stack.process()
             if not self.stack.transmitting():
                 return None
-            time.sleep(0.001)
+            time.sleep(1e-5)
 
         raise TimeoutError("Timeout : Envoi non terminé. Délai dépassé")
     
-    def request(self, msg_name: str, *args, timeout=1.0):
+    def request(self, msg_name: str, timeout=1.0):
         """
         Fait une requête et attend la réponse.
         """
-        self.send(msg_name, *args)
+        msg = self.reg[msg_name] # ajouter if not in reg
+        payload = struct.pack("<B", msg[0]) # erreur de format
+        self.stack.send(payload)
 
-        format = "<" + self.reg[msg_name][1][2:]
+        t0 = time.time()
+        while time.time() - t0 < timeout:
+            self.stack.process()
+            if not self.stack.transmitting():
+                break
+            time.sleep(1e-5)
+
+        
+        formate = "<" + msg[1][2:]
         t0 = time.time()
         while time.time() - t0 < timeout:
             self.stack.process()
             while self.stack.available():
                 payload = self.stack.recv()
-                return struct.unpack(format, payload) # erreur de format
-            time.sleep(0.001)
+                return struct.unpack(formate, payload) # erreur de format
+            time.sleep(1e-5)
 
         raise TimeoutError("Timeout : Retour non reçu. Délai dépassé")
