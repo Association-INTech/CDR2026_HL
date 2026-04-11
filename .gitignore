@@ -1,2 +1,5 @@
 venv/
 2025
+env/
+.env/
+__pycache__

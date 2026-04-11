@@ -1,6 +1,6 @@
-from simulation import Simulation
-from position import Position
-
+from behaviour_tree.simulation.simulation import Simulation
+from behaviour_tree.utilities.position import Position
+from py_trees.trees import BehaviourTree
 class Comm:
     """Classe qui gère la communication avec le LL, on ajoutera les messages CAN ici"""
     #def __init__(self):
@@ -20,16 +20,14 @@ class Comm:
 
 class CommSim(Comm):
     """Classe qui gère la communication avec le LL, simulé avec pygame"""
-    def __init__(self):
-        self.simulation = Simulation(0.5, auto_start=False)
+    def __init__(self,simRobot):
+        self.simulation = Simulation(0.5, auto_start=False,robot=simRobot)
     def start_move(self,dist):
         self.simulation.robot.start_move(dist)
     def start_rotate(self, angle):
         self.simulation.robot.rotate(angle)
     def get_position(self):
-        x,y=self.simulation.robot.getCenterPos()
-        angle=self.simulation.robot.angle%360
-        return Position(x,y,angle)
+        return self.simulation.robot.getCenterPos()
     def get_feedback(self,id):
         #print(f"Feedback {id}:{self.simulation.robot.move_remaining}")
         return (self.simulation.robot.move_remaining == 0)
@@ -37,3 +35,10 @@ class CommSim(Comm):
         self.simulation.robot.isTopDown=state
     def putBottomBarrier(self,state):
         self.simulation.robot.isBottomDown=state
+    def tick_simulation(self, tree: BehaviourTree) -> None:
+        """Update simulation before each behavior tree tick."""
+        if not self.simulation.tick():
+            # Simulation was closed, interrupt the behavior tree
+            tree.interrupt()
+    def link_frobidden(self, forbidden_zones):
+        self.simulation.forbidden_zones = forbidden_zones  # same reference
