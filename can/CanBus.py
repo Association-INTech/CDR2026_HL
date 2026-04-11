@@ -36,7 +36,7 @@ class CanBus:
         self.can_channel = can_channel
         self.bitrate = bitrate
         # ouvre le bus CAN socketcan
-        """self.bus = can.Bus(interface="socketcan", channel=can_channel, bitrate=bitrate)
+        self.bus = can.Bus(interface="socketcan", channel=can_channel, bitrate=bitrate)
         # adresse sur 11 bits avec tx et rx
         self.addr = isotp.Address(isotp.AddressingMode.Normal_11bits, txid=self.tx, rxid=self.rx)
         # paramétres du protocole ISOTP
@@ -54,7 +54,7 @@ class CanBus:
             address=self.addr,
             params=self.isotp_params,
             error_handler=lambda e: print("[ISO-TP ERROR]", e),
-        )"""
+        )
         
 
 
