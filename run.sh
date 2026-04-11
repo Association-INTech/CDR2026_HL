@@ -10,13 +10,13 @@ source venv/bin/activate
 
 
 # Configurer le CAN
-./can/setup_can.sh
+#./can/setup_can.sh
 
 
 # Configurer le lidar
-./lidar/hokuyo/setup_lidar.sh
+#./lidar/hokuyo/setup_lidar.sh
 # Lancer le scan en arrière-plan
-./lidar/hokuyo/scan_lidar.py
-
+#./lidar/hokuyo/scan_lidar.py
+./can/Console.py
 
 #camera
