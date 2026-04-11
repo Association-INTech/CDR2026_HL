@@ -114,7 +114,8 @@ class Console:
                     self.convert(self.bus.reg, msg_name, args)
                     if self.bus.reg[msg_name][0] < limite:
                         try:
-                            self.bus.send(msg_name, *args)
+                            debug = self.bus.send(msg_name, *args)
+                            self.write(debug)
                         except:
                             self.write("Ereur lors de l'envoi de send()\n")
                     else:
