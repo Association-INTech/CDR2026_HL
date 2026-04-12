@@ -1,4 +1,7 @@
-from communication import Communication
+#!/usr/bin/env python3
+
+
+from behaviour_tree.utilities.communication import Communication
 import CanBus
 
 class CommunicationCan(Communication):

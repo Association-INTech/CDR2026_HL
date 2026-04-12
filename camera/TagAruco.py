@@ -1,3 +1,6 @@
+#!/usr/bin/env python3
+
+
 import numpy as np
 import cv2
 
@@ -34,14 +37,13 @@ class TagAruco:
         self.tags = []
 
         corners, ids, _ = detector.detectMarkers(gray)
-        if ids != None:
+        if ids is not None and len(ids) > 0:
             for i in range(len(ids)):
-                self.tags.append((corners[i][0][0][0],ids[i][0]))
+                self.tags.append((corners[i][0][0][1],ids[i][0])) #verticalement
 
 
     def set_gates(self) -> None:
         if len(self.tags) == 4: # si les 4 tags ne sont pas tous détectés il recommence 
-            # peut etre ajouter une division par 4 de l'image ???
             tri(self.tags)
             for i in range(4):
                 if self.tags[i][1] == self.opponent_id:
