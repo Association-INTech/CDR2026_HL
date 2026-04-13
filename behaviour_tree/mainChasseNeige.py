@@ -30,7 +30,7 @@ if __name__ == "__main__":
     root.add_child(setup(name="setup", order=order, robot=robot))
 
     procedure_limited_time = py_trees.composites.Sequence("procedure_limited_time", memory=True)
-    procedure_limited_time.add_child(CheckTime(name="check_time_under_limit", robot=robot, end_time=5))
+    procedure_limited_time.add_child(CheckTime(name="check_time_under_limit", robot=robot, end_time=80))
     procedure_limited_time.add_child(ProcedureNoisette(name="procedure_noisette", robot=robot))
 
     run_while_time_ok = py_trees.decorators.Repeat(
