@@ -14,6 +14,7 @@ from behaviour_tree.utilities.robot import robotMagicoBus
 from behaviour_tree.behaviours.strategieMagicoBus import ProcedurePushNoisette
 from behaviour_tree.simulation.simulation import SimRobotMagicoBus
 from behaviour_tree.utilities.position import Position
+from behaviour_tree.utilities.communication import CommSim
 
 if __name__ == "__main__":
     startPos = Position(150, 100, 90)
@@ -22,7 +23,8 @@ if __name__ == "__main__":
         pos=startPos,
         speed=250,
     )
-    robot = robotMagicoBus(pos=startPos, simRobot=simRobot)
+    comm = CommSim(simRobot)
+    robot = robotMagicoBus(pos=startPos, comm=comm)
 
     root = ProcedurePushNoisette("PushNoisette", robot)
     robot.startBT(root, robot)

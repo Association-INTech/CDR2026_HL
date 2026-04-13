@@ -3,7 +3,6 @@
 from hokuyolx import HokuyoLX
 import time
 import numpy as np
-import CanCommunication
 
 
 
@@ -14,7 +13,7 @@ angle = angle_limit * np.pi / 180
 distance_limite = 100
 waiting_time = 3 # secondes
 incertitude = 10 # millimètre
-ref_lidar_angle = np.pi/2 # orientation du radar par rapport au robot
+ref_lidar_angle = -np.pi/2 # orientation du radar par rapport au robot
 frequency = 3 # nombre de ratissage pour le boucle != de la fréquence de rotation
 
 
@@ -50,8 +49,8 @@ def coordinatesCalculator(
         distance: float
         ) -> tuple:
     absolute_angle = theta0 + theta + ref_lidar_angle
-    distance_sup = distance + incertitude # on minimise les riques
-    return x0 + distance_sup*np.cos(absolute_angle), y0 + distance_sup*np.sin(absolute_angle)
+    distance_sup = distance - incertitude # on minimise les riques
+    return x0 + distance_sup*np.sin(absolute_angle), y0 + distance_sup*np.cos(absolute_angle)
     
 
 
@@ -69,12 +68,13 @@ def nearest(scan: np.ndarray) -> tuple:
     """
     distances = [i[1] for i in scan]
     if not distances:
-        #print(f"Pas d'obstacle à {distance_max} mm ou le lidar n'a rien capté")
+        print(f"Pas d'obstacle à {distance_max} mm ou le lidar n'a rien capté")
         return 0, float('inf')
 
     rang = distances.index(min(distances))
-    #print("Obstacle le plus proche :", obstacle[1], "mm")
-    #print("Angle (deg) :", obstacle[0] * 180 / np.pi)
+    obstacle = scan[rang]
+    print("Obstacle le plus proche :", obstacle[1], "mm")
+    print("Angle (deg) :", obstacle[0] * 180 / np.pi)
     return scan[rang]
 
 
@@ -92,15 +92,10 @@ def update(laser: HokuyoLX) -> np.ndarray:
     
 
 
-def run() -> None:
+def run(x0, y0, theta0) -> None:
     """
     Mise en oeuvre pour l'exécution
     """
-    
-    try:
-        x0, y0, theta0 = CanCommunication.getPosition()
-    except Exception as e:
-        print("Erreur lors de l'acquisition de la position", e)
     
     try:
         laser = HokuyoLX(addr=("192.168.0.10", 10940), tsync=False)
@@ -109,14 +104,12 @@ def run() -> None:
         print("Erreur lors de la création de la classe HokuyoLX", e)
         
     try: # revoir la boucle : tester le temps d'execution
-        for _ in range(frequency): # lancement d'affilé au cas ou il aurait raté un obstacle
-            scan = update(laser)
-            theta, distance = nearest(scan)
-            if distance < distance_limite:    
-                coordinates = coordinatesCalculator(x0, y0, theta0, theta, distance)
-                if in_the_field(coordinates):
-                    CanCommunication.stop()
-            time.sleep(1e-3)
+        scan = update(laser)
+        theta, distance = nearest(scan)
+        coordinates = coordinatesCalculator(x0, y0, theta0, theta, distance)
+        print(coordinates)
+        return in_the_field(coordinates), distance, theta*180/np.pi
+        time.sleep(1e-3)
     finally:
         laser.close()
 
@@ -124,7 +117,7 @@ def run() -> None:
 # Lancement
 while True:
     try:
-        run()
+        print(run(0,0,0))
     except Exception as e:
         print("Erreur lors du lancement de run()", e)
         time.sleep(1)
