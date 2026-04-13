@@ -3,7 +3,7 @@
 
 from behaviour_tree.utilities.communication import Communication
 from behaviour_tree.utilities.position import Position
-from camera.shift import set_gates
+from camera.shift import gates_setup, set_gates
 from lidar.hokuyolx.scan_lidar import run
 
 import CanBus
@@ -51,7 +51,7 @@ class CommunicationCan(Communication):
             side = "yellow"
         else:
             side = "blue"
-	return gates_setup(side)
+        return gates_setup(side)
 
     def lidar(x0,y0,theta):
         return run(x0,y0,theta)
