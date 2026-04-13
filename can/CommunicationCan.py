@@ -2,6 +2,7 @@
 
 
 from behaviour_tree.utilities.communication import Communication
+from behaviour_tree.utilities.position import Position
 from camera.shift import set_gates
 from lidar.hokuyolx.scan_lidar import run
 
@@ -13,8 +14,8 @@ reg_asserv = CanBus.reg_asserv
 reg_action = CanBus.reg_action
 
 class CommunicationCan(Communication):
-    def __init__(self, reg_type: str):
-        super().__init__()
+    def __init__(self, startPos, reg_type: str):
+        super().__init__(startPos)
         self.bus = CanBus.CanBus(reg_type)
     
     def switchBus(self, reg_type):
@@ -65,7 +66,8 @@ class CommunicationCan(Communication):
     def get_position(self):
         if self.bus.reg != reg_asserv:
             self.switchBus("asserv")
-        return self.bus.request("get_pos")
+        x,y,angle = self.bus.request("get_pos")
+        return Position(x, y, angle).add(self.startPos)
 
     #action
 

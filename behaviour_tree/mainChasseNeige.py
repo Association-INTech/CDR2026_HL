@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 import sys
 from pathlib import Path
 
@@ -11,15 +13,31 @@ from behaviour_tree.utilities.logging_setup import setup_logging
 setup_logging()
 
 import py_trees
-from behaviour_tree.utilities.robot import robotChasseNeige
+from behaviour_tree.utilities.robot import RobotChasseNeige
 from behaviour_tree.behaviours.strategieChasseNeige import ProcedureNoisette, setup
 from behaviour_tree.behaviours.basicBehaviours import Start, GetSide, CheckTime, SetLoc, GoToLoc
-from behaviour_tree.simulation.simulation import SimRobot
 from behaviour_tree.utilities.position import Position
-from behaviour_tree.utilities.communication import CommSim
+
+import argparse
+
+parser = argparse.ArgumentParser(description="Run robot controller in Sim or Hardware mode.")
+parser.add_argument(
+    "--sim", 
+    action="store_true", 
+    help="Run in simulation mode"
+)
+
+SIMULATION = parser.parse_args().sim
+
+if SIMULATION:
+    from behaviour_tree.simulation.simulation import SimRobot
+    from behaviour_tree.utilities.communicationSimulation import CommSim as Comm
+else:
+    from can.CommunicationCan import CommunicationCan as Comm
 
 if __name__ == "__main__":
-    startPos = Position(150, 100, 90)
+    DISTANCE_CODEUSES = 54
+    startPos = Position(270, DISTANCE_CODEUSES, 90)
     order=[2,3,0] #for left side
     timeStartGoBack= 80 # seconds until robot should start going back to start position
     
@@ -27,12 +45,16 @@ if __name__ == "__main__":
     logger.info("===== Main Program Started =====")
     logger.info(f"Start position: {startPos}, Order: {order}, Go-back time limit: {timeStartGoBack}s")
     
-    simRobot = SimRobot(
+    if SIMULATION:
+        simRobot = SimRobot(
         pos=startPos,
         speed=250,
-    )
-    comm = CommSim(simRobot)
-    robot = robotChasseNeige(pos=startPos, comm=comm)
+        )
+        comm = Comm(simRobot,startPos=startPos)
+    else:
+        comm = Comm(startPos=startPos)
+    
+    robot = RobotChasseNeige(pos=startPos, comm=comm)
 
     root = py_trees.composites.Sequence("MainSequence", memory=True)
     root.add_child(Start(name="wait_start_signal", robot=robot))
