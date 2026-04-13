@@ -25,8 +25,8 @@ class CanBus:
 
     def __init__(self, reg_type: str, can_channel="can0", bitrate=250000):
         if reg_type == "asserv":
-            self.tx = 0x1
-            self.rx = 0x2
+            self.tx = 0x001
+            self.rx = 0x002
             self.reg = reg_asserv
         elif reg_type == "action":
             self.tx = 0x3
@@ -101,6 +101,7 @@ class CanBus:
             self.stack.process()
             while self.stack.available():
                 payload = self.stack.recv()
+                print (len(payload))
                 return struct.unpack(formate, payload) # erreur de format
             time.sleep(1e-5)
 
