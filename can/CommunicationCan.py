@@ -2,6 +2,7 @@
 
 
 from behaviour_tree.utilities.communication import Communication
+from behaviour_tree.utilities.position import Position
 import CanBus
 
 
@@ -53,7 +54,8 @@ class CommunicationCan(Communication):
     def get_position(self):
         if self.bus.reg != reg_asserv:
             self.switchBus("asserv")
-        return self.bus.request("get_pos")
+        x,y,angle = self.bus.request("get_pos")
+        return Position(x, y, angle).add(self.startPos)
 
     #action
 

@@ -3,8 +3,8 @@ from behaviour_tree.utilities.communication import Comm
 
 class CommSim(Comm):
     """Classe qui gère la communication avec le LL, simulé avec pygame"""
-    def __init__(self,simRobot):
-        super().__init__(simRobot.getCenterPos())
+    def __init__(self,simRobot,startPos):
+        super().__init__(startPos)
         self.simulation = Simulation(0.5, auto_start=False,robot=simRobot)
         
     def start_move(self,dist):

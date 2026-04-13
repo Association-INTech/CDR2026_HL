@@ -133,7 +133,7 @@ class Robot:
         self.update()
         return len(self.actions)!=0 #check if actions empty
 
-class robotChasseNeige(Robot):
+class RobotChasseNeige(Robot):
     def __init__(self, pos, comm):
         super().__init__(pos, comm)
         
@@ -141,7 +141,7 @@ class robotChasseNeige(Robot):
         self.update()
         return self.pos.foward(Robot.HEIGHT//2)
 
-class robotMagicoBus(Robot):
+class RobotMagicoBus(Robot):
     def __init__(self, pos, comm):
         super().__init__(pos, comm)
         

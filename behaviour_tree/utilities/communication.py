@@ -9,7 +9,7 @@ class Comm:
     def stop(self):
         print("stopped")
     def get_position(self):
-        return None
+        return self.startPos
     def get_feedback(self,id):
         return True
     def putTopBarrier(self,state):
