@@ -1,7 +1,7 @@
 import py_trees
 import time
 from behaviour_tree.utilities.position import Position
-from behaviour_tree.utilities.robot import Robot
+from behaviour_tree.utilities.robot import NutBox, Robot
 
 class GetLoc(py_trees.behaviour.Behaviour):
     """Obtient le prochain endroit"""
@@ -16,6 +16,7 @@ class GetLoc(py_trees.behaviour.Behaviour):
 
     def update(self):
         if len(self.queue)==0:
+            self.logger.debug("No more loc in queue")
             return py_trees.common.Status.FAILURE
         self.blackboard.loc=self.getNextLoc()
         self.logger.debug(f"Going to {str(self.blackboard.loc)}")
@@ -154,6 +155,7 @@ class Rotate(py_trees.behaviour.Behaviour):
 
     def update(self):
         if time.time() - self.start_time > 10:
+            self.logger.debug(f"Rotate action timeout: {self.angle}° in {time.time() - self.start_time:.2f}s")
             return py_trees.common.Status.FAILURE
         if self.robot.is_moving():
             return py_trees.common.Status.RUNNING
@@ -173,6 +175,7 @@ class Move(py_trees.behaviour.Behaviour):
 
     def update(self):
         if time.time() - self.start_time > 10:
+            self.logger.debug(f"Move action timeout: {self.distance}mm in {time.time() - self.start_time:.2f}s")
             return py_trees.common.Status.FAILURE
         if self.robot.is_moving():
             return py_trees.common.Status.RUNNING
@@ -190,6 +193,7 @@ class TopBarrier(py_trees.behaviour.Behaviour):
 
     def update(self):
         if time.time() - self.start_time > 10:
+            self.logger.debug("Top Barrier action timeout")
             return py_trees.common.Status.FAILURE
         if self.robot.is_moving():
             return py_trees.common.Status.RUNNING
@@ -207,6 +211,7 @@ class BottomBarrier(py_trees.behaviour.Behaviour):
 
     def update(self):
         if time.time() - self.start_time > 10:
+            self.logger.debug("Bottom Barrier action timeout")
             return py_trees.common.Status.FAILURE
         if self.robot.is_moving():
             return py_trees.common.Status.RUNNING
@@ -274,8 +279,10 @@ class CheckTime(py_trees.behaviour.Behaviour):
 
     def update(self):
         elapsed = time.time() - self.robot.start_time
+        self.logger.debug(f"Time: {elapsed:.2f}s elapsed")
         if elapsed < self.end_time:
             return py_trees.common.Status.SUCCESS
+        self.logger.debug(f"Time limit reached: {elapsed:.2f}s elapsed, limit was {self.end_time}s")
         return py_trees.common.Status.FAILURE
 
 
@@ -293,3 +300,57 @@ class SetLoc(py_trees.behaviour.Behaviour):
         self.blackboard.loc = self.loc
         return py_trees.common.Status.SUCCESS
     
+class NutBoxShiftCamera(py_trees.behaviour.Behaviour):
+    """Writes shift from camera on the blackboard."""
+
+    def __init__(self, name: str, robot):
+        super().__init__(name)
+        self.robot = robot
+        self.blackboard = self.attach_blackboard_client(name=name)
+        self.blackboard.register_key(key="side", access=py_trees.common.Access.READ)
+        self.blackboard.register_key(key="nutBoxShift", access=py_trees.common.Access.WRITE)
+
+    def initialise(self):
+        self.start_time=time.time()
+    
+    def update(self):
+        gates = self.robot.comm.checkCamera(self.blackboard.side)
+        
+        if sum(gates) != 2:
+            return py_trees.common.Status.RUNNING
+        
+        timeout = 2.0
+        
+        if time.time() - self.start_time > timeout:
+            return py_trees.common.Status.FAILURE
+        
+        match gates:
+            case [1, 1, 0, 0]:
+                shift = -2  # décale de 2 blocs à gauche
+            case [1, 0, 0, 0] | [1, 0, 1, 0] | [1, 0, 0, 1]:
+                shift = -1  # décale de 1 blocs à gauche
+            case [0, 0, 1, 1]:
+                shift = 2   # décale de 2 blocs à droite
+            case [0, 0, 0, 1] | [0, 1, 0, 1]:
+                shift = 1   # décale de 1 blocs à droite
+            case _:
+                shift = 0   # reste sur place
+                
+        self.blackboard.nutBoxShift = shift
+        return py_trees.common.Status.SUCCESS
+        
+class Push(py_trees.decorators.PassThrough):
+    """Pushes the current NutBox"""
+
+    def __init__(self, name: str, robot, pushDistance: int):
+        self.main_sequence = py_trees.composites.Sequence(name+"MainSequence", True)
+        super().__init__(name,self.main_sequence)
+        self.robot = robot
+        self.blackboard = self.attach_blackboard_client(name=name)
+        self.blackboard.register_key(key="nutBoxShift", access=py_trees.common.Access.READ)
+        self.pushDistance = pushDistance
+
+    def initialise(self):
+        pushDistance = self.pushDistance + self.blackboard.nutBoxShift * NutBox.HEIGHT  # Adjust push distance
+        self.main_sequence.remove_all_children()
+        self.main_sequence.add_child(Move(name="PushMove", robot=self.robot, value=pushDistance))

@@ -2,7 +2,7 @@ import py_trees
 import time
 from behaviour_tree.utilities.position import Position
 from behaviour_tree.utilities.robot import Robot, NutBox
-from behaviour_tree.behaviours.basicBehaviours import GetLoc, GoToLoc, Move, TopBarrier, BottomBarrier, UpdateNoisettePos, GetSide, Start
+from behaviour_tree.behaviours.basicBehaviours import GetLoc, GoToLoc, Move, TopBarrier, BottomBarrier, UpdateNoisettePos, GetSide, Start, NutBoxShiftCamera, Push
 
 class setup(py_trees.behaviour.Behaviour):
     """setup strategy for the robot"""
@@ -19,8 +19,6 @@ class setup(py_trees.behaviour.Behaviour):
         self.robot.noisettes[0].push_pos=self.robot.noisettes[0].getPushpos().add(Position(100,NutBox.HEIGHT*NutBox.BOX_COUNT+self.robot.HEIGHT//2,180))
         self.robot.noisettes[1].push_pos=self.robot.noisettes[1].getPushpos().add(Position(100,NutBox.HEIGHT*NutBox.BOX_COUNT+self.robot.HEIGHT//2,180))
         self.robot.noisettes[3].push_pos=self.robot.noisettes[3].getPushpos().add(Position(0,-100,0))
-        print(f"noisette 0 push pos: {self.robot.noisettes[0].push_pos}")
-        print(f"noisette 1 push pos: {self.robot.noisettes[1].push_pos}")        
         
         pushDistances = [
             700,   #0
@@ -48,9 +46,15 @@ class setup(py_trees.behaviour.Behaviour):
 
 class ProcedurePushNoisette(py_trees.decorators.PassThrough):
     def __init__(self, name: str, pushDistance: int, robot):
-        self.main_sequence = py_trees.composites.Sequence(name+"MainSequence", True)
-        super().__init__(name,self.main_sequence)
-        self.main_sequence.add_child(Move(name=name+"_move_push", value=pushDistance, robot=robot))
+        self.main_selector = py_trees.composites.Selector(name+"MainSelector", True)
+        super().__init__(name,self.main_selector)
+        
+        self.pushSequence = py_trees.composites.Sequence(name+"PushSequence", True)
+        self.pushSequence.add_child(NutBoxShiftCamera(name=name+"_shift_camera", robot=robot))
+        self.pushSequence.add_child(Push(name=name+"_shifted_push", robot=robot, pushDistance=pushDistance))
+        
+        self.main_selector.add_child(self.pushSequence)
+        self.main_selector.add_child(Move(name=name+"_move_push", value=pushDistance, robot=robot))
 
 
 class PushCurrentNutBoxChildren(py_trees.decorators.PassThrough):

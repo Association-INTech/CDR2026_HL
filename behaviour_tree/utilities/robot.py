@@ -1,9 +1,11 @@
 from behaviour_tree.utilities.position import Position
 #from communication import Comm
 from behaviour_tree.utilities.communication import CommSim as Comm
+import logging
 import py_trees
 import time
 from behaviour_tree.utilities.graph import GridGraph
+from behaviour_tree.utilities.logging_setup import setup_logging
 
 AREA_WIDTH = 3000
 AREA_HEIGHT = 2000
@@ -15,13 +17,14 @@ class Robot:
     HEIGHT=175
 
     
-    def __init__(self, pos, simRobot=None):
+    def __init__(self, pos, comm):
+        setup_logging()
         self.pos=pos
-        self.comm=Comm(simRobot)
+        self.comm=comm
         self.actions=[]
         self.__countID=0 #variable de classe pour avoir un id
         self.start_time = time.time()
-        self.logger = py_trees.logging.Logger("Robot")
+        self.logger = logging.getLogger("Robot")
         self.graph=GridGraph(AREA_WIDTH,AREA_HEIGHT,scale=10, rotate_buffer=Robot.HEIGHT//2)
         self.comm.link_frobidden(self.graph.forbidden)
         self.graph.addForbidden(600-Robot.WIDTH//2,2400+Robot.WIDTH//2,0,450+Robot.WIDTH//2) #forbidden zone pamis
@@ -55,16 +58,16 @@ class Robot:
     
     def startBT(self, root, robot):
         behaviour_tree = py_trees.trees.BehaviourTree(root=root)
-        print(py_trees.display.unicode_tree(root=root))
+        self.logger.debug(py_trees.display.unicode_tree(root=root))
         behaviour_tree.setup(timeout=15)
 
 
         def post_tick_handler(tree: py_trees.trees.BehaviourTree) -> None:
             """Print tree and check for completion."""
-            print(py_trees.display.unicode_tree(root=tree.root, show_status=True))
+            self.logger.debug(py_trees.display.unicode_tree(root=tree.root, show_status=True))
             
             if tree.root.status in [py_trees.common.Status.SUCCESS, py_trees.common.Status.FAILURE]:
-                print(f"Finished | Status: {tree.root.status}")
+                self.logger.debug(f"Finished | Status: {tree.root.status}")
                 raise SystemExit                
         py_trees.logging.level = py_trees.logging.Level.DEBUG
 
@@ -133,16 +136,16 @@ class Robot:
         return len(self.actions)!=0 #check if actions empty
 
 class robotChasseNeige(Robot):
-    def __init__(self, pos, simRobot=None):
-        super().__init__(pos, simRobot)
+    def __init__(self, pos):
+        super().__init__(pos)
         
     def getNutBoxPos(self):
         self.update()
         return self.pos.foward(Robot.HEIGHT//2)
 
 class robotMagicoBus(Robot):
-    def __init__(self, pos, simRobot=None):
-        super().__init__(pos, simRobot)
+    def __init__(self, pos):
+        super().__init__(pos)
         
     def getNutBoxPos(self):
         self.update()
