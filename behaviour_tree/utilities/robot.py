@@ -1,9 +1,11 @@
 from behaviour_tree.utilities.position import Position
 #from communication import Comm
 from behaviour_tree.utilities.communication import CommSim as Comm
+import logging
 import py_trees
 import time
 from behaviour_tree.utilities.graph import GridGraph
+from behaviour_tree.utilities.logging_setup import setup_logging
 
 AREA_WIDTH = 3000
 AREA_HEIGHT = 2000
@@ -16,12 +18,13 @@ class Robot:
 
     
     def __init__(self, pos, simRobot=None):
+        setup_logging()
         self.pos=pos
         self.comm=Comm(simRobot)
         self.actions=[]
         self.__countID=0 #variable de classe pour avoir un id
         self.start_time = time.time()
-        self.logger = py_trees.logging.Logger("Robot")
+        self.logger = logging.getLogger("Robot")
         self.graph=GridGraph(AREA_WIDTH,AREA_HEIGHT,scale=10, rotate_buffer=Robot.HEIGHT//2)
         self.comm.link_frobidden(self.graph.forbidden)
         self.graph.addForbidden(600-Robot.WIDTH//2,2400+Robot.WIDTH//2,0,450+Robot.WIDTH//2) #forbidden zone pamis
