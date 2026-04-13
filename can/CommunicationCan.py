@@ -3,6 +3,9 @@
 
 from behaviour_tree.utilities.communication import Communication
 from behaviour_tree.utilities.position import Position
+from camera.shift import set_gates
+from lidar.hokuyolx.scan_lidar import run
+
 import CanBus
 
 
@@ -43,7 +46,16 @@ class CommunicationCan(Communication):
             self.switchBus("asserv")
         self.bus.send("stop")
 
-    
+    def checkCamera(self, side ):
+        if side:
+            side = "yellow"
+        else:
+            side = "blue"
+	return gates_setup(side)
+
+    def lidar(x0,y0,theta):
+        return run(x0,y0,theta)
+
     #request
     def is_idle(self):
         if self.bus.reg != reg_asserv:
