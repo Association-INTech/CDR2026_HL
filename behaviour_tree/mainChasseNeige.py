@@ -11,6 +11,7 @@ from behaviour_tree.behaviours.strategieChasseNeige import ProcedureNoisette, se
 from behaviour_tree.behaviours.basicBehaviours import Start, GetSide, CheckTime, SetLoc, GoToLoc
 from behaviour_tree.simulation.simulation import SimRobot
 from behaviour_tree.utilities.position import Position
+from behaviour_tree.utilities.communication import CommSim
 
 if __name__ == "__main__":
     startPos = Position(150, 100, 90)
@@ -21,7 +22,8 @@ if __name__ == "__main__":
         pos=startPos,
         speed=250,
     )
-    robot = robotChasseNeige(pos=startPos, simRobot=simRobot)
+    comm = CommSim(simRobot)
+    robot = robotChasseNeige(pos=startPos, comm=comm)
 
     root = py_trees.composites.Sequence("MainSequence", memory=True)
     root.add_child(Start(name="wait_start_signal", robot=robot))

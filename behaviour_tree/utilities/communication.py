@@ -21,6 +21,8 @@ class Comm:
     def checkCamera(self,side):
         gates = [0, 0, 0, 0]
         return gates
+    def tick_simulation(self, tree) -> None:
+        return
 
 class CommSim(Comm):
     """Classe qui gère la communication avec le LL, simulé avec pygame"""

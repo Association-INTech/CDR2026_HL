@@ -5,6 +5,7 @@ from pathlib import Path
 if __package__ is None or __package__ == "":
     sys.path.append(str(Path(__file__).resolve().parent.parent))
 
+from behaviour_tree.utilities.communication import CommSim
 from behaviour_tree.utilities.robot import robotMagicoBus
 from behaviour_tree.behaviours.strategieMagicoBus import ProcedurePushNoisette
 from behaviour_tree.simulation.simulation import SimRobotMagicoBus
@@ -17,7 +18,8 @@ if __name__ == "__main__":
         pos=startPos,
         speed=250,
     )
-    robot = robotMagicoBus(pos=startPos, simRobot=simRobot)
+    comm = CommSim(simRobot)
+    robot = robotMagicoBus(pos=startPos, comm=comm)
 
     root = ProcedurePushNoisette("PushNoisette", robot)
     robot.startBT(root, robot)

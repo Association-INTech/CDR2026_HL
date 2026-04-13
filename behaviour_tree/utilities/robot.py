@@ -15,9 +15,9 @@ class Robot:
     HEIGHT=175
 
     
-    def __init__(self, pos, simRobot=None):
+    def __init__(self, pos, comm):
         self.pos=pos
-        self.comm=Comm(simRobot)
+        self.comm=comm
         self.actions=[]
         self.__countID=0 #variable de classe pour avoir un id
         self.start_time = time.time()
@@ -133,16 +133,16 @@ class Robot:
         return len(self.actions)!=0 #check if actions empty
 
 class robotChasseNeige(Robot):
-    def __init__(self, pos, simRobot=None):
-        super().__init__(pos, simRobot)
+    def __init__(self, pos):
+        super().__init__(pos)
         
     def getNutBoxPos(self):
         self.update()
         return self.pos.foward(Robot.HEIGHT//2)
 
 class robotMagicoBus(Robot):
-    def __init__(self, pos, simRobot=None):
-        super().__init__(pos, simRobot)
+    def __init__(self, pos):
+        super().__init__(pos)
         
     def getNutBoxPos(self):
         self.update()
