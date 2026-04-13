@@ -1,6 +1,4 @@
 from behaviour_tree.utilities.position import Position
-#from communication import Comm
-from behaviour_tree.utilities.communication import CommSim as Comm
 import logging
 import py_trees
 import time

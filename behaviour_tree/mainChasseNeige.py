@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 import sys
 from pathlib import Path
 
@@ -16,7 +18,22 @@ from behaviour_tree.behaviours.strategieChasseNeige import ProcedureNoisette, se
 from behaviour_tree.behaviours.basicBehaviours import Start, GetSide, CheckTime, SetLoc, GoToLoc
 from behaviour_tree.simulation.simulation import SimRobot
 from behaviour_tree.utilities.position import Position
-from behaviour_tree.utilities.communication import CommSim
+
+import argparse
+
+parser = argparse.ArgumentParser(description="Run robot controller in Sim or Hardware mode.")
+parser.add_argument(
+    "--sim", 
+    action="store_true", 
+    help="Run in simulation mode"
+)
+
+SIMULATION = parser.parse_args().sim
+
+if SIMULATION:
+    from behaviour_tree.utilities.communicationSimulation import CommSim as Comm
+else:
+    from can.CommunicationCan import CommunicationCan as Comm
 
 if __name__ == "__main__":
     startPos = Position(150, 100, 90)
@@ -31,7 +48,7 @@ if __name__ == "__main__":
         pos=startPos,
         speed=250,
     )
-    comm = CommSim(simRobot)
+    comm = Comm(simRobot)
     robot = robotChasseNeige(pos=startPos, comm=comm)
 
     root = py_trees.composites.Sequence("MainSequence", memory=True)

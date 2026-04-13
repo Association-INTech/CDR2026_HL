@@ -10,8 +10,8 @@ reg_asserv = CanBus.reg_asserv
 reg_action = CanBus.reg_action
 
 class CommunicationCan(Communication):
-    def __init__(self, reg_type: str):
-        super().__init__()
+    def __init__(self, startPos, reg_type: str):
+        super().__init__(startPos)
         self.bus = CanBus.CanBus(reg_type)
     
     def switchBus(self, reg_type):
