@@ -136,16 +136,16 @@ class Robot:
         return len(self.actions)!=0 #check if actions empty
 
 class robotChasseNeige(Robot):
-    def __init__(self, pos):
-        super().__init__(pos)
+    def __init__(self, pos, comm):
+        super().__init__(pos, comm)
         
     def getNutBoxPos(self):
         self.update()
         return self.pos.foward(Robot.HEIGHT//2)
 
 class robotMagicoBus(Robot):
-    def __init__(self, pos):
-        super().__init__(pos)
+    def __init__(self, pos, comm):
+        super().__init__(pos, comm)
         
     def getNutBoxPos(self):
         self.update()
