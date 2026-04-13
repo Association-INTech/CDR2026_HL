@@ -33,18 +33,21 @@ def gates_setup(color:str, timeout: float=timeout): # notre couleur pour color
 
 
 def shift(gates):
-    if gates[0]:
-        if gates[1]:
-            return -2  # décale de 2 blocs à gauche
-        else:
-            return -1  # décale de 1 blocs à gauche
-    else:
-        if gates[3]:
-            if gates[2]:
-                return 2  # décale de 2 blocs à droite 
+    if sum(gates) == 2:
+        if gates[0]:
+            if gates[1]:
+                return -2  # décale de 2 blocs à gauche
             else:
-                return 1  # décale de 1 blocs à droite
+                return -1  # décale de 1 blocs à gauche
         else:
-            return 0  # reste sur place
+            if gates[3]:
+                if gates[2]:
+                    return 2  # décale de 2 blocs à droite 
+                else:
+                    return 1  # décale de 1 blocs à droite
+            else:
+                return 0  # reste sur place
+    else:
+        return 0
             
 
