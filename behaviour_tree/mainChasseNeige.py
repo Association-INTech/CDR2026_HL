@@ -33,11 +33,11 @@ if SIMULATION:
     from behaviour_tree.simulation.simulation import SimRobot
     from behaviour_tree.utilities.communicationSimulation import CommSim as Comm
 else:
-    from can.CommunicationCan import CommunicationCan as Comm
+    from canBus.CommunicationCan import CommunicationCan as Comm
 
 if __name__ == "__main__":
     DISTANCE_CODEUSES = 54
-    startPos = Position(270, DISTANCE_CODEUSES, 90)
+    startPos = Position(20, DISTANCE_CODEUSES, 90)
     order=[2,3,0] #for left side
     timeStartGoBack= 80 # seconds until robot should start going back to start position
     
