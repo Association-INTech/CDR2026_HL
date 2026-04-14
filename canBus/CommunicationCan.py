@@ -64,7 +64,7 @@ class CommunicationCan(Comm):
         if self.bus.reg != reg_asserv:
             self.switchBus("asserv")
         angle_rad = angle * math.pi / 180
-        self.bus.send("rotate", angle)
+        self.bus.send("rotate", angle_rad)
 
     
     def set_position(self, x: float, y: float):
