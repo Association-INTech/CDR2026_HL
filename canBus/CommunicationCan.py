@@ -15,7 +15,8 @@ try:
     from camera.shift import gates_setup, set_gates
 except ModuleNotFoundError:
     logger.exception("Camera: import failed")
-    
+except Exception as e:
+    logger.exception("Camera: failed to setup: %s", e)
 
 from canBus.CanBus import CanBus
 #import CanBus
