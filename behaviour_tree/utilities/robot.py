@@ -96,8 +96,15 @@ class Robot:
         self.update()
         return self.pos
     
+    def update_position(self):
+        pos = self.comm.get_position()
+        if pos is not None:
+            self.pos = pos
+        else:
+            self.logger.warning("Pos: get_position returned none, pos maintained  %s", self.pos)
+    
     def update(self):
-        self.pos=self.comm.get_position()
+        self.update_position()
         self.logger.debug(str(self.pos))
         for id in self.actions:
             if self.comm.get_feedback(id):
