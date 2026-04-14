@@ -1,5 +1,10 @@
+import logging
+
 from behaviour_tree.simulation.simulation import Simulation
 from behaviour_tree.utilities.communication import Comm
+
+
+logger = logging.getLogger(__name__)
 
 class CommSim(Comm):
     """Classe qui gère la communication avec le LL, simulé avec pygame"""
@@ -15,8 +20,8 @@ class CommSim(Comm):
         self.simulation.robot.move_remaining=0
     def get_position(self):
         return self.simulation.robot.getCenterPos()
-    def get_feedback(self,id):
-        #print(f"Feedback {id}:{self.simulation.robot.move_remaining}")
+    def get_feedback(self,id=None):
+        logger.debug("Feedback %s: %s", id, self.simulation.robot.move_remaining)
         return (self.simulation.robot.move_remaining == 0)
     def putTopBarrier(self,state):
         self.simulation.robot.isTopDown=state

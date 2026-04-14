@@ -6,7 +6,7 @@ source venv/bin/activate
 
 
 # Configurer le CAN
-./can/setup_can.sh
+./canBus/setup_can.sh
 
 
 # Configurer le lidar

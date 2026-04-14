@@ -15,7 +15,7 @@ setup_logging()
 import py_trees
 from behaviour_tree.utilities.robot import RobotChasseNeige
 from behaviour_tree.behaviours.strategieChasseNeige import ProcedureNoisette, setup
-from behaviour_tree.behaviours.basicBehaviours import Start, GetSide, CheckTime, SetLoc, GoToLoc, CheckLidar, Stop
+from behaviour_tree.behaviours.basicBehaviours import Start, GetSide, CheckTime, SetLoc, GoToLoc, CheckLidar, Stop, Move, Rotate
 from behaviour_tree.utilities.position import Position
 
 import argparse
@@ -70,33 +70,9 @@ if __name__ == "__main__":
     
     sequence_strategie = py_trees.composites.Sequence("sequence_strategie", memory=True)
     
-    fallback_lidar = py_trees.composites.Selector("lidar_fallback", memory=True)
-    fallback_lidar.add_child(CheckLidar(name="check_time_for_lidar", robot=robot))
-    fallback_lidar.add_child(Stop(name="stop_for_lidar", robot=robot))
-    
-    if USELIDAR:
-        sequence_strategie.add_child(fallback_lidar)
-    
-    procedure_limited_time = py_trees.composites.Sequence("procedure_limited_time", memory=True)
-    procedure_limited_time.add_child(CheckTime(name="check_time_under_limit", robot=robot, end_time=TIMEGOBACK))
-    procedure_limited_time.add_child(ProcedureNoisette(name="procedure_noisette", robot=robot))
-
-    run_while_time_ok = py_trees.decorators.Repeat(
-        name="repeat_procedure_noisette",
-        child=procedure_limited_time,
-        num_success=len(ORDER),
-    )
-
-    sequence_go_back = py_trees.composites.Sequence("sequence_go_back", memory=True)
-    sequence_go_back.add_child(SetLoc(name="SetLoc_go_back", robot=robot, loc=Position(150, 100, 90)))
-    sequence_go_back.add_child(GoToLoc(name="GoToLoc_go_back", robot=robot))
-
-    fallback = py_trees.composites.Selector("fallback_time", memory=True)
-    fallback.add_child(run_while_time_ok)
-    fallback.add_child(sequence_go_back)
-
-    sequence_strategie.add_child(fallback)
-    
+    sequence_strategie.add_child(Move(name="Move1", value=500, robot=robot))
+    sequence_strategie.add_child(Rotate(name="Rotate1", value=180, robot=robot))
+    sequence_strategie.add_child(Move(name="Move2", value=500, robot=robot))    
     root.add_child(sequence_strategie)
     
     

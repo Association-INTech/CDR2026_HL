@@ -15,12 +15,13 @@ class Robot:
     HEIGHT=175
 
     
-    def __init__(self, pos, comm):
+    def __init__(self, pos, comm, wait_for_is_idle=True):
         setup_logging()
         self.pos=pos
         self.comm=comm
         self.actions=[]
         self.__countID=0 #variable de classe pour avoir un id
+        self.wait_for_is_idle=wait_for_is_idle
         self.start_time = time.time()
         self.logger = logging.getLogger("Robot")
         self.graph=GridGraph(AREA_WIDTH,AREA_HEIGHT,scale=10, rotate_buffer=Robot.HEIGHT//2)
@@ -96,18 +97,29 @@ class Robot:
         self.update()
         return self.pos
     
+    def update_position(self):
+        pos = self.comm.get_position()
+        if pos is not None:
+            self.pos = pos
+        else:
+            self.logger.warning("Pos: get_position returned none, pos maintained  %s", self.pos)
+    
     def update(self):
-        self.pos=self.comm.get_position()
+        self.update_position()
         self.logger.debug(str(self.pos))
+        """
         for id in self.actions:
             if self.comm.get_feedback(id):
                 self.actions.remove(id)
-
+        """
+        self.is_idle() #updates actions
+        
     def start_move(self,dist):
         id=self.getID()
         self.update()
         self.comm.start_move(dist)
         self.actions.append(id)
+        self.logger.info(f"Start move: {dist}mm | ID: {id}")
         return id
 
     def start_rotate(self, angle):
@@ -115,6 +127,7 @@ class Robot:
         self.update()
         self.comm.start_rotate(angle)
         self.actions.append(id)
+        self.logger.info(f"Start rotate: {angle}° | ID: {id}")
         return id
     
     def top_barrier(self,state):
@@ -127,23 +140,33 @@ class Robot:
         id=self.getID()
         self.comm.putBottomBarrier(state)
         return id
+    
+    def stop(self):
+        id=self.getID()
+        self.comm.stop()
+        self.actions.clear() #consider all actions done since we stopped the robot
+        self.logger.info(f"Stop robot | ID: {id}")
+        return id
 
 
-    def is_moving(self):
-        self.update()
-        return len(self.actions)!=0 #check if actions empty
+    def is_idle(self):
+        is_idle = self.comm.get_feedback()
+        self.logger.debug(f"Is Idle: {is_idle}")
+        if is_idle:
+            self.actions.clear() 
+        return is_idle #check if actions empty
 
 class RobotChasseNeige(Robot):
-    def __init__(self, pos, comm):
-        super().__init__(pos, comm)
+    def __init__(self, pos, comm, wait_for_is_idle=True):
+        super().__init__(pos, comm, wait_for_is_idle)
         
     def getNutBoxPos(self):
         self.update()
         return self.pos.foward(Robot.HEIGHT//2)
 
 class RobotMagicoBus(Robot):
-    def __init__(self, pos, comm):
-        super().__init__(pos, comm)
+    def __init__(self, pos, comm, wait_for_is_idle=True):
+        super().__init__(pos, comm, wait_for_is_idle)
         
     def getNutBoxPos(self):
         self.update()

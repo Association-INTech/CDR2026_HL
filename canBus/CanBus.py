@@ -5,33 +5,34 @@ import struct
 import can
 import isotp
 
-reg_asserv = {
+
+class CanBus:
+
+    reg_asserv = {
     "move" : (0, "<Bd"),
     "rotate" : (1, "<Bd"),
     "set_pos" : (2, "<Bdd"),
     "stop" : (3, "<B"),
     # limite
-    "is_idle" : (16, "<B?"),
+    "is_idle" : (18, "<B?"),
     "get_pos" : (17, "<Bddd")
-}
+    }
 
-reg_action = {
-    "lift" : (0, "<BBBBB")
-}
+    reg_action = {
+        "lift" : (0, "<BBBBB")
+    }
 
-limite = 16 # de 0 à 16 les messages de send et à partir de 16 request
-
-class CanBus:
+    limite = 16 # de 0 à 16 les messages de send et à partir de 16 request
 
     def __init__(self, reg_type: str, can_channel="can0", bitrate=250000):
         if reg_type == "asserv":
             self.tx = 0x001
             self.rx = 0x002
-            self.reg = reg_asserv
+            self.reg = CanBus.reg_asserv
         elif reg_type == "action":
             self.tx = 0x3
             self.rx = 0x4
-            self.reg = reg_action
+            self.reg = CanBus.reg_action
         else:
             raise Exception("ArgError : Le bus est soit en asserv ou en action.")
         self.can_channel = can_channel
