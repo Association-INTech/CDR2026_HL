@@ -4,7 +4,7 @@ import logging
 
 from math import dist
 
-from behaviour_tree.utilities.communication import Communication
+from behaviour_tree.utilities.communication import Comm
 from behaviour_tree.utilities.position import Position
 from camera.shift import gates_setup, set_gates
 from lidar.hokuyo.scan_lidar import run
@@ -18,7 +18,7 @@ reg_action = CanBus.reg_action
 
 logger = logging.getLogger(__name__)
 
-class CommunicationCan(Communication):
+class CommunicationCan(Comm):
     def __init__(self, startPos, reg_type: str):
         super().__init__(startPos)
         self.bus = CanBus.CanBus(reg_type)
