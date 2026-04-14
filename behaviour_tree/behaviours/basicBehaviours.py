@@ -354,3 +354,32 @@ class Push(py_trees.decorators.PassThrough):
         pushDistance = self.pushDistance + self.blackboard.nutBoxShift * NutBox.HEIGHT  # Adjust push distance
         self.main_sequence.remove_all_children()
         self.main_sequence.add_child(Move(name="PushMove", robot=self.robot, value=pushDistance))
+
+class CheckLidar(py_trees.behaviour.Behaviour):
+    """Checks the lidar for obstacles"""
+
+    def __init__(self, name: str, robot):
+        super().__init__(name)
+        self.robot = robot
+    def update(self):
+        pos = self.robot.getPos()
+        is_obstacle = self.robot.comm.lidar(pos)
+        if is_obstacle:
+            self.logger.debug("Lidar: Obstacle detected")
+            return py_trees.common.Status.FAILURE
+        return py_trees.common.Status.SUCCESS
+    
+class Stop(py_trees.behaviour.Behaviour):
+    """Stop robot"""
+
+    def __init__(self, name: str, robot):
+        super().__init__(name)
+        self.robot = robot
+
+    def initialise(self):
+        self.id=self.robot.stop()
+        
+    def update(self):
+        if self.robot.comm.get_feedback(self.id):
+            return py_trees.common.Status.SUCCESS
+        return py_trees.common.Status.FAILURE

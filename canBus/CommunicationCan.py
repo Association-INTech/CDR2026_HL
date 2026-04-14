@@ -1,10 +1,13 @@
 #!/usr/bin/env python3
 
+import logging
+
+from math import dist
 
 from behaviour_tree.utilities.communication import Communication
 from behaviour_tree.utilities.position import Position
 from camera.shift import gates_setup, set_gates
-from lidar.hokuyolx.scan_lidar import run
+from lidar.hokuyo.scan_lidar import run
 
 import CanBus
 
@@ -13,10 +16,25 @@ import CanBus
 reg_asserv = CanBus.reg_asserv
 reg_action = CanBus.reg_action
 
+logger = logging.getLogger(__name__)
+
 class CommunicationCan(Communication):
     def __init__(self, startPos, reg_type: str):
         super().__init__(startPos)
         self.bus = CanBus.CanBus(reg_type)
+    
+    def _safe_request(self, command, *args, default=None):
+        """CAN request with error handling"""
+        try:
+            response = self.bus.request(command, *args)
+            if response is not None:
+                return response
+
+            logger.error("CAN ERROR: Empty response for: %s", command)
+        except Exception as e:
+            logger.exception("CAN ERROR: Error for %s: %s", command, e)
+        
+        return default
     
     def switchBus(self, reg_type):
         self.bus = CanBus.CanBus(reg_type)
@@ -47,26 +65,46 @@ class CommunicationCan(Communication):
         self.bus.send("stop")
 
     def checkCamera(self, side ):
-        if side:
-            side = "yellow"
-        else:
-            side = "blue"
-        return gates_setup(side)
+        color = "yellow" if side else "blue"
+        try:
+            gates = gates_setup(color)
+            return gates if gates is not None else [0, 0, 0, 0]
+        except Exception as e:
+            logger.exception("Camera failure: %s", e)
+            return [0, 0, 0, 0] 
+        
+    def lidar(self, pos):
+        try:
+            x0,y0,theta = pos
+            is_valid, dist, angle = run(x0,y0,theta)
+            THRESHOLD = 100  #TODO test to determine threshold (idk if this is correct)
+            
+            if is_valid and dist < THRESHOLD:
+                logger.info("LIDAR: Obstacle detected, dist: %smm, threshold: %smm", dist, THRESHOLD)
+                return True 
+            return False    
+            
+        except Exception as e:
+                logger.exception("LIDAR failure: %s", e)
+                return [0, 0, 0, 0] 
 
-    def lidar(x0,y0,theta):
-        return run(x0,y0,theta)
 
     #request
-    def is_idle(self):
+    def get_feedback(self,id):
         if self.bus.reg != reg_asserv:
             self.switchBus("asserv")
-        return self.bus.request("is_idle")
+        return self.bus._safe_request("is_idle",default=False)
 
     
     def get_position(self):
         if self.bus.reg != reg_asserv:
             self.switchBus("asserv")
-        x,y,angle = self.bus.request("get_pos")
+        
+        res = self._safe_request("get_pos")
+        if res is None:
+            return None 
+        x, y, angle = res
+        x,y,angle = res
         return Position(x, y, angle).add(self.startPos)
 
     #action

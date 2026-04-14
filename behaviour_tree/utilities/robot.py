@@ -127,6 +127,12 @@ class Robot:
         id=self.getID()
         self.comm.putBottomBarrier(state)
         return id
+    
+    def stop(self):
+        id=self.getID()
+        self.comm.stop()
+        self.actions.clear() #consider all actions done since we stopped the robot
+        return id
 
 
     def is_moving(self):
