@@ -14,7 +14,7 @@ class CanBus:
     "set_pos" : (2, "<Bdd"),
     "stop" : (3, "<B"),
     # limite
-    "is_idle" : (4, "<B?"),
+    "is_idle" : (18, "<B?"),
     "get_pos" : (17, "<Bddd")
     }
 
