@@ -106,7 +106,7 @@ class CommunicationCan(Comm):
     def get_feedback(self,id):
         if self.bus.reg != reg_asserv:
             self.switchBus("asserv")
-        return self.bus._safe_request("is_idle",default=False)
+        return self._safe_request("is_idle",default=False)
 
     
     def get_position(self):
