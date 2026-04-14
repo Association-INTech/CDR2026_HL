@@ -1,5 +1,13 @@
 #!/usr/bin/env python
 
+#Repare les problèmes d'imports
+import sys
+from pathlib import Path
+
+if __package__ is None or __package__ == "":
+    sys.path.append(str(Path(__file__).resolve().parent.parent))
+
+
 from canBus.CanBus import CanBus
 import tkinter as tk
 
@@ -13,7 +21,7 @@ class Console:
     
     
     def __init__(self, root):
-        self.bus = CanBus.CanBus("asserv")
+        self.bus = CanBus("asserv")
         self.root = root
         self.root.title("Commander le robot")
 
@@ -104,7 +112,7 @@ class Console:
                     try:
                         self.bus.close()
                     finally:
-                        self.bus = CanBus.CanBus("action")
+                        self.bus = CanBus("action")
                 elif msg_name not in reg_asserv:
                     self.write("Veuillez mettre une commande répertoriée\n")
                     self.entry.delete(0, tk.END)
@@ -131,7 +139,7 @@ class Console:
                     try:
                         self.bus.close()
                     finally:
-                        self.bus = CanBus.CanBus("asserv")
+                        self.bus = CanBus("asserv")
                 elif msg_name not in reg_action:
                     self.write("Veuillez mettre une commande répertoriée\n")
                     self.entry.delete(0, tk.END)
