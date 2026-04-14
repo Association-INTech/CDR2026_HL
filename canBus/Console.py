@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-import CanBus
+from canBus.CanBus import CanBus
 import tkinter as tk
 
 
