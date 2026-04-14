@@ -1,14 +1,5 @@
 #!/usr/bin/env python
 
-#Repare les problèmes d'imports
-import sys
-from pathlib import Path
-
-if __package__ is None or __package__ == "":
-    sys.path.append(str(Path(__file__).resolve().parent.parent))
-
-
-#from canBus.CanBus import CanBus
 import CanBus
 import tkinter as tk
 
@@ -113,7 +104,7 @@ class Console:
                     try:
                         self.bus.close()
                     finally:
-                        self.bus = CanBus("action")
+                        self.bus = CanBus.CanBus("action")
                 elif msg_name not in reg_asserv:
                     self.write("Veuillez mettre une commande répertoriée\n")
                     self.entry.delete(0, tk.END)

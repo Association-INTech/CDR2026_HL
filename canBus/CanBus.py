@@ -6,13 +6,13 @@ import can
 import isotp
 
 reg_asserv = {
-"move" : (0, "<Bd"),
-"rotate" : (1, "<Bd"),
-"set_pos" : (2, "<Bdd"),
-"stop" : (3, "<B"),
-# limite
-"is_idle" : (16, "<B?"),
-"get_pos" : (17, "<Bddd")
+    "move" : (0, "<Bd"),
+    "rotate" : (1, "<Bd"),
+    "set_pos" : (2, "<Bdd"),
+    "stop" : (3, "<B"),
+    # limite
+    "is_idle" : (16, "<B?"),
+    "get_pos" : (17, "<Bddd")
 }
 
 reg_action = {
@@ -22,7 +22,7 @@ reg_action = {
 limite = 16 # de 0 à 16 les messages de send et à partir de 16 request
 
 class CanBus:
-    
+
     def __init__(self, reg_type: str, can_channel="can0", bitrate=250000):
         if reg_type == "asserv":
             self.tx = 0x001
