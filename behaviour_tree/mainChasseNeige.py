@@ -15,7 +15,7 @@ setup_logging()
 import py_trees
 from behaviour_tree.utilities.robot import RobotChasseNeige
 from behaviour_tree.behaviours.strategieChasseNeige import ProcedureNoisette, setup
-from behaviour_tree.behaviours.basicBehaviours import Start, GetSide, CheckTime, SetLoc, GoToLoc
+from behaviour_tree.behaviours.basicBehaviours import Start, GetSide, CheckTime, SetLoc, GoToLoc, CheckLidar, Stop
 from behaviour_tree.utilities.position import Position
 
 import argparse
@@ -37,13 +37,15 @@ else:
 
 if __name__ == "__main__":
     DISTANCE_CODEUSES = 54
-    startPos = Position(20, DISTANCE_CODEUSES, 90)
-    order=[2,3,0] #for left side
-    timeStartGoBack= 80 # seconds until robot should start going back to start position
+    startPos = Position(270, DISTANCE_CODEUSES, 90)
+    ORDER=[2,3,0] #for left side
+    TIMEGOBACK= 80 # seconds until robot should start going back to start position
+    USELIDAR = False
+    USECAMERA = True
     
     logger = logging.getLogger(__name__)
     logger.info("===== Main Program Started =====")
-    logger.info(f"Start position: {startPos}, Order: {order}, Go-back time limit: {timeStartGoBack}s")
+    logger.info(f"Start position: {startPos}, Order: {ORDER}, Go-back time limit: {TIMEGOBACK}s")
     
     if SIMULATION:
         simRobot = SimRobot(
@@ -60,26 +62,39 @@ if __name__ == "__main__":
     root.add_child(Start(name="wait_start_signal", robot=robot))
     root.add_child(GetSide(name="get_side", robot=robot))
     
-    root.add_child(setup(name="setup", order=order, robot=robot))
-
+    root.add_child(setup(name="setup", order=ORDER, robot=robot))
+    
+    sequence_strategie = py_trees.composites.Sequence("sequence_strategie", memory=True)
+    
+    fallback_lidar = py_trees.composites.Selector("lidar_fallback", memory=True)
+    fallback_lidar.add_child(CheckLidar(name="check_time_for_lidar", robot=robot))
+    fallback_lidar.add_child(Stop(name="stop_for_lidar", robot=robot))
+    
+    if USELIDAR:
+        sequence_strategie.add_child(fallback_lidar)
+    
     procedure_limited_time = py_trees.composites.Sequence("procedure_limited_time", memory=True)
-    procedure_limited_time.add_child(CheckTime(name="check_time_under_limit", robot=robot, end_time=timeStartGoBack))
+    procedure_limited_time.add_child(CheckTime(name="check_time_under_limit", robot=robot, end_time=TIMEGOBACK))
     procedure_limited_time.add_child(ProcedureNoisette(name="procedure_noisette", robot=robot))
 
     run_while_time_ok = py_trees.decorators.Repeat(
         name="repeat_procedure_noisette",
         child=procedure_limited_time,
-        num_success=len(order),
+        num_success=len(ORDER),
     )
 
-    fallback_go_to_loc = py_trees.composites.Sequence("go_back", memory=True)
-    fallback_go_to_loc.add_child(SetLoc(name="SetLoc_go_back", robot=robot, loc=Position(150, 100, 90)))
-    fallback_go_to_loc.add_child(GoToLoc(name="GoToLoc_go_back", robot=robot))
+    sequence_go_back = py_trees.composites.Sequence("sequence_go_back", memory=True)
+    sequence_go_back.add_child(SetLoc(name="SetLoc_go_back", robot=robot, loc=Position(150, 100, 90)))
+    sequence_go_back.add_child(GoToLoc(name="GoToLoc_go_back", robot=robot))
 
     fallback = py_trees.composites.Selector("fallback_time", memory=True)
     fallback.add_child(run_while_time_ok)
-    fallback.add_child(fallback_go_to_loc)
+    fallback.add_child(sequence_go_back)
 
-    root.add_child(fallback)
+    sequence_strategie.add_child(fallback)
+    
+    root.add_child(sequence_strategie)
+    
+    
 
     robot.startBT(root, robot)

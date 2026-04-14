@@ -4,7 +4,7 @@
 from behaviour_tree.utilities.communication import Communication
 from behaviour_tree.utilities.position import Position
 from camera.shift import gates_setup, set_gates
-from lidar.hokuyolx.scan_lidar import run
+from lidar.hokuyo.scan_lidar import run
 
 import CanBus
 
@@ -53,11 +53,14 @@ class CommunicationCan(Communication):
             side = "blue"
         return gates_setup(side)
 
-    def lidar(x0,y0,theta):
-        return run(x0,y0,theta)
+    def lidar(self, pos):
+        x0,y0,theta = pos
+        is_valid, dist, angle = run(x0,y0,theta)
+        THRESHOLD = 100  #TODO test to determine threshold (idk if this is correct)
+        return (is_valid and dist < THRESHOLD)
 
     #request
-    def is_idle(self):
+    def get_feedback(self,id):
         if self.bus.reg != reg_asserv:
             self.switchBus("asserv")
         return self.bus.request("is_idle")

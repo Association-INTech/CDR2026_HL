@@ -21,6 +21,8 @@ class Comm:
     def checkCamera(self,side):
         gates = [0, 0, 0, 0]
         return gates
+    def lidar(self, pos):
+        return False
     def tick_simulation(self, tree) -> None:
         return
 
