@@ -18,8 +18,7 @@ except ModuleNotFoundError:
 except Exception as e:
     logger.exception("Camera: failed to setup: %s", e)
 
-from canBus.CanBus import CanBus
-#import CanBus
+import canBus.CanBus as CanBus
 
 
 
@@ -31,7 +30,7 @@ class CommunicationCan(Comm):
     def __init__(self, startPos, reg_type: str ="asserv"):
         super().__init__(startPos)
         try:
-            self.bus = CanBus(reg_type)
+            self.bus = CanBus.CanBus(reg_type)
         except Exception as e:
             logger.exception("CAN ERROR: Could not init: %s", e)
             raise e
