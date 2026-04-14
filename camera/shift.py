@@ -3,7 +3,7 @@
 import cv2
 from picamera2 import Picamera2
 import time
-from TagAruco import TagAruco
+from .TagAruco import TagAruco
 
 timeout = 2.0
 

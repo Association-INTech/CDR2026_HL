@@ -6,22 +6,34 @@ from math import dist
 
 from behaviour_tree.utilities.communication import Comm
 from behaviour_tree.utilities.position import Position
-from camera.shift import gates_setup, set_gates
 from lidar.hokuyo.scan_lidar import run
 
-import CanBus
+logger = logging.getLogger(__name__)
+
+
+try:
+    from camera.shift import gates_setup, set_gates
+except ModuleNotFoundError:
+    logger.exception("Camera: import failed")
+    
+
+from canBus.CanBus import CanBus
+#import CanBus
 
 
 
 reg_asserv = CanBus.reg_asserv
 reg_action = CanBus.reg_action
 
-logger = logging.getLogger(__name__)
 
 class CommunicationCan(Comm):
-    def __init__(self, startPos, reg_type: str):
+    def __init__(self, startPos, reg_type: str ="asserv"):
         super().__init__(startPos)
-        self.bus = CanBus.CanBus(reg_type)
+        try:
+            self.bus = CanBus(reg_type)
+        except Exception as e:
+            logger.exception("CAN ERROR: Could not init: %s", e)
+            raise e
     
     def _safe_request(self, command, *args, default=None):
         """CAN request with error handling"""
