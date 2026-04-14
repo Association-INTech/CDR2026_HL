@@ -57,7 +57,7 @@ class CommunicationCan(Comm):
     def start_move(self, distance: float):
         if self.bus.reg != reg_asserv:
             self.switchBus("asserv")
-        self.bus.send("move", distance)
+        self.bus.send("move", -distance)
 
 
     def start_rotate(self, angle: float):
