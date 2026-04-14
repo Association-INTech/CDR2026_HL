@@ -38,4 +38,6 @@ class Comm:
         return state
     def tick_simulation(self, tree) -> None:
         return
+    def link_frobidden(self, forbidden_zones):
+        return
 
