@@ -154,10 +154,13 @@ class Rotate(py_trees.behaviour.Behaviour):
         self.id=self.robot.start_rotate(self.angle)
 
     def update(self):
-        if time.time() - self.start_time > 10:
+        if time.time() - self.start_time > 5:
             self.logger.debug(f"Rotate action timeout: {self.angle}° in {time.time() - self.start_time:.2f}s")
-            return py_trees.common.Status.FAILURE
-        if self.robot.is_moving():
+            if self.robot.wait_for_is_idle:
+                return py_trees.common.Status.SUCCESS
+            else:
+                return py_trees.common.Status.FAILURE
+        if self.robot.is_moving() and self.robot.wait_for_is_idle:
             return py_trees.common.Status.RUNNING
         return py_trees.common.Status.SUCCESS        
                
@@ -174,10 +177,13 @@ class Move(py_trees.behaviour.Behaviour):
         self.id=self.robot.start_move(self.distance)
 
     def update(self):
-        if time.time() - self.start_time > 10:
+        if time.time() - self.start_time > 5:
             self.logger.debug(f"Move action timeout: {self.distance}mm in {time.time() - self.start_time:.2f}s")
-            return py_trees.common.Status.FAILURE
-        if self.robot.is_moving():
+            if self.robot.wait_for_is_idle:
+                return py_trees.common.Status.SUCCESS
+            else:
+                return py_trees.common.Status.FAILURE
+        if self.robot.is_moving() and self.robot.wait_for_is_idle:
             return py_trees.common.Status.RUNNING
         return py_trees.common.Status.SUCCESS
 
@@ -194,8 +200,11 @@ class TopBarrier(py_trees.behaviour.Behaviour):
     def update(self):
         if time.time() - self.start_time > 10:
             self.logger.debug("Top Barrier action timeout")
-            return py_trees.common.Status.FAILURE
-        if self.robot.is_moving():
+            if self.robot.wait_for_is_idle:
+                return py_trees.common.Status.SUCCESS
+            else:
+                return py_trees.common.Status.FAILURE
+        if self.robot.is_moving() and self.robot.wait_for_is_idle:
             return py_trees.common.Status.RUNNING
         return py_trees.common.Status.SUCCESS
 
@@ -212,8 +221,11 @@ class BottomBarrier(py_trees.behaviour.Behaviour):
     def update(self):
         if time.time() - self.start_time > 10:
             self.logger.debug("Bottom Barrier action timeout")
-            return py_trees.common.Status.FAILURE
-        if self.robot.is_moving():
+            if self.robot.wait_for_is_idle:
+                return py_trees.common.Status.SUCCESS
+            else:
+                return py_trees.common.Status.FAILURE
+        if self.robot.is_moving() and self.robot.wait_for_is_idle:
             return py_trees.common.Status.RUNNING
         return py_trees.common.Status.SUCCESS
 

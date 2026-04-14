@@ -56,7 +56,11 @@ if __name__ == "__main__":
     else:
         comm = Comm(startPos=startPos)
     
-    robot = RobotChasseNeige(pos=startPos, comm=comm)
+    robot = RobotChasseNeige(
+        pos=startPos, 
+        comm=comm,
+        wait_for_is_idle=False,  # Wait for is_idle from LL and if recieved then consider action done
+    )
 
     root = py_trees.composites.Sequence("MainSequence", memory=True)
     root.add_child(Start(name="wait_start_signal", robot=robot))

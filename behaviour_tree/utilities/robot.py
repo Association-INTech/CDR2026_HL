@@ -15,12 +15,13 @@ class Robot:
     HEIGHT=175
 
     
-    def __init__(self, pos, comm):
+    def __init__(self, pos, comm, wait_for_is_idle=True):
         setup_logging()
         self.pos=pos
         self.comm=comm
         self.actions=[]
         self.__countID=0 #variable de classe pour avoir un id
+        self.wait_for_is_idle=wait_for_is_idle
         self.start_time = time.time()
         self.logger = logging.getLogger("Robot")
         self.graph=GridGraph(AREA_WIDTH,AREA_HEIGHT,scale=10, rotate_buffer=Robot.HEIGHT//2)
@@ -147,16 +148,16 @@ class Robot:
         return len(self.actions)!=0 #check if actions empty
 
 class RobotChasseNeige(Robot):
-    def __init__(self, pos, comm):
-        super().__init__(pos, comm)
+    def __init__(self, pos, comm, wait_for_is_idle=True):
+        super().__init__(pos, comm, wait_for_is_idle)
         
     def getNutBoxPos(self):
         self.update()
         return self.pos.foward(Robot.HEIGHT//2)
 
 class RobotMagicoBus(Robot):
-    def __init__(self, pos, comm):
-        super().__init__(pos, comm)
+    def __init__(self, pos, comm, wait_for_is_idle=True):
+        super().__init__(pos, comm, wait_for_is_idle)
         
     def getNutBoxPos(self):
         self.update()
