@@ -162,7 +162,7 @@ class Rotate(py_trees.behaviour.Behaviour):
         if time.time() - self.start_time > 5:
             self.logger.debug(f"Rotate action timeout: {self.angle}° in {time.time() - self.start_time:.2f}s")
             return py_trees.common.Status.FAILURE
-        if not self.robot.is_idle():
+        if not self.robot.is_idle() and time.time() - self.start_time > 0.5:
             return py_trees.common.Status.RUNNING
         return py_trees.common.Status.SUCCESS        
                
@@ -233,7 +233,7 @@ class BottomBarrier(py_trees.behaviour.Behaviour):
         if time.time() - self.start_time > 5:
             self.logger.debug(f"Bottom Barrier action timeout: {self.state} in {time.time() - self.start_time:.2f}s")
             return py_trees.common.Status.FAILURE
-        if not self.robot.is_idle():
+        if not self.robot.is_idle() and time.time() - self.start_time > 0.5:
             return py_trees.common.Status.RUNNING
         return py_trees.common.Status.SUCCESS        
 
