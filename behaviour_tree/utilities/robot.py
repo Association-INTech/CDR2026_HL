@@ -107,15 +107,19 @@ class Robot:
     def update(self):
         self.update_position()
         self.logger.debug(str(self.pos))
+        """
         for id in self.actions:
             if self.comm.get_feedback(id):
                 self.actions.remove(id)
-
+        """
+        self.is_idle() #updates actions
+        
     def start_move(self,dist):
         id=self.getID()
         self.update()
         self.comm.start_move(dist)
         self.actions.append(id)
+        self.logger.info(f"Start move: {dist}mm | ID: {id}")
         return id
 
     def start_rotate(self, angle):
@@ -123,6 +127,7 @@ class Robot:
         self.update()
         self.comm.start_rotate(angle)
         self.actions.append(id)
+        self.logger.info(f"Start rotate: {angle}° | ID: {id}")
         return id
     
     def top_barrier(self,state):
@@ -140,12 +145,16 @@ class Robot:
         id=self.getID()
         self.comm.stop()
         self.actions.clear() #consider all actions done since we stopped the robot
+        self.logger.info(f"Stop robot | ID: {id}")
         return id
 
 
-    def is_moving(self):
-        self.update()
-        return len(self.actions)!=0 #check if actions empty
+    def is_idle(self):
+        is_idle = self.comm.get_feedback()
+        self.logger.debug(f"Is Idle: {is_idle}")
+        if is_idle:
+            self.actions.clear() 
+        return is_idle #check if actions empty
 
 class RobotChasseNeige(Robot):
     def __init__(self, pos, comm, wait_for_is_idle=True):

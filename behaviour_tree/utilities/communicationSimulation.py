@@ -20,7 +20,7 @@ class CommSim(Comm):
         self.simulation.robot.move_remaining=0
     def get_position(self):
         return self.simulation.robot.getCenterPos()
-    def get_feedback(self,id):
+    def get_feedback(self,id=None):
         logger.debug("Feedback %s: %s", id, self.simulation.robot.move_remaining)
         return (self.simulation.robot.move_remaining == 0)
     def putTopBarrier(self,state):

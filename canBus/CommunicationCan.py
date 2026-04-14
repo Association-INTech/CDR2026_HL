@@ -14,9 +14,9 @@ logger = logging.getLogger(__name__)
 try:
     from camera.shift import gates_setup, set_gates
 except ModuleNotFoundError:
-    logger.exception("Camera: import failed")
+    logger.warning("Camera: import failed")
 except Exception as e:
-    logger.exception("Camera: failed to setup: %s", e)
+    logger.warning("Camera: failed to setup: %s", e)
 
 from canBus.CanBus import CanBus
 #import CanBus
@@ -33,7 +33,7 @@ class CommunicationCan(Comm):
         try:
             self.bus = CanBus(reg_type)
         except Exception as e:
-            logger.exception("CAN ERROR: Could not init: %s", e)
+            logger.critical("CAN ERROR: Could not init: %s", e)
             raise e
     
     def _safe_request(self, command, *args, default=None):
@@ -45,7 +45,7 @@ class CommunicationCan(Comm):
 
             logger.error("CAN ERROR: Empty response for: %s", command)
         except Exception as e:
-            logger.exception("CAN ERROR: Error for %s: %s", command, e)
+            logger.critical("CAN ERROR: Error for %s: %s", command, e)
         
         return default
     
@@ -83,7 +83,7 @@ class CommunicationCan(Comm):
             gates = gates_setup(color)
             return gates if gates is not None else [0, 0, 0, 0]
         except Exception as e:
-            logger.exception("Camera failure: %s", e)
+            logger.error("Camera failure: %s", e)
             return [0, 0, 0, 0] 
         
     def lidar(self, pos):
@@ -98,12 +98,12 @@ class CommunicationCan(Comm):
             return False    
             
         except Exception as e:
-                logger.exception("LIDAR failure: %s", e)
+                logger.error("LIDAR failure: %s", e)
                 return [0, 0, 0, 0] 
 
 
     #request
-    def get_feedback(self,id):
+    def get_feedback(self,id=None):
         if self.bus.reg != reg_asserv:
             self.switchBus("asserv")
         return self._safe_request("is_idle",default=False)

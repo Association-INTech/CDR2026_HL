@@ -17,7 +17,7 @@ class Comm:
     def get_position(self):
         logger.info("Placeholder: get_position %s: %s", id, self.startPos)
         return self.startPos
-    def get_feedback(self,id):
+    def get_feedback(self,id=None):
         state = True
         logger.info("Placeholder: Feedback %s: %s", id, state)
         return state
