@@ -2,7 +2,7 @@
 
 import logging
 
-from math import dist
+import math
 
 from behaviour_tree.utilities.communication import Comm
 from behaviour_tree.utilities.position import Position
@@ -63,6 +63,7 @@ class CommunicationCan(Comm):
     def start_rotate(self, angle: float):
         if self.bus.reg != reg_asserv:
             self.switchBus("asserv")
+        angle_rad = angle * math.pi / 180
         self.bus.send("rotate", angle)
 
     
