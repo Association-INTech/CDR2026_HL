@@ -8,4 +8,7 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-all = ["RPi.GPIO>=0.7.0", "can-isotp>=2.0.7", "python-can>=4.6.1", "hokuyolx>=0.9.0", "opencv-python>=4.13.0.92"]
+hardware = ["RPi.GPIO>=0.7.0"]
+can = ["can-isotp>=2.0.7", "python-can>=4.6.1"]
+sensors = ["hokuyolx>=0.9.0", "opencv-python>=4.13.0.92", "picamera2>=0.3.0"]
+all = ["RPi.GPIO>=0.7.0", "can-isotp>=2.0.7", "python-can>=4.6.1", "hokuyolx>=0.9.0", "opencv-python>=4.13.0.92", "picamera2>=0.3.0"]
