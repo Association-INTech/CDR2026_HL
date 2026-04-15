@@ -1,6 +1,6 @@
 import logging
 
-from behaviour_tree.simulation.simulation import Simulation
+from simulation.simulation import Simulation
 from behaviour_tree.utilities.communication import Comm
 
 

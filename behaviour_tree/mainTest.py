@@ -30,8 +30,8 @@ parser.add_argument(
 SIMULATION = parser.parse_args().sim
 
 if SIMULATION:
-    from behaviour_tree.simulation.simulation import SimRobot
-    from behaviour_tree.utilities.communicationSimulation import CommSim as Comm
+    from simulation.simulation import SimRobot
+    from simulation.communicationSimulation import CommSim as Comm
 else:
     from canBus.CommunicationCan import CommunicationCan as Comm
 

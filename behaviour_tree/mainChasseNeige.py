@@ -30,8 +30,8 @@ parser.add_argument(
 SIMULATION = parser.parse_args().sim
 
 if SIMULATION:
-    from behaviour_tree.simulation.simulation import SimRobot
-    from behaviour_tree.utilities.communicationSimulation import CommSim as Comm
+    from simulation.simulation import SimRobot
+    from simulation.communicationSimulation import CommSim as Comm
 else:
     from canBus.CommunicationCan import CommunicationCan as Comm
 
@@ -59,7 +59,7 @@ if __name__ == "__main__":
     robot = RobotChasseNeige(
         pos=startPos, 
         comm=comm,
-        wait_for_is_idle=False,  # Wait for is_idle from LL and if recieved then consider action done
+        wait_for_is_idle=True,  # Wait for is_idle from LL and if recieved then consider action done
     )
 
     root = py_trees.composites.Sequence("MainSequence", memory=True)
