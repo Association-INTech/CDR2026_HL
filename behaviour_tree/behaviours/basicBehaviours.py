@@ -245,7 +245,7 @@ class Start(py_trees.behaviour.Behaviour):
         self.robot = robot
 
     def update(self):
-        tirette = True #TODO replace with actual signal
+        tirette = self.robot.comm.isTierettePulled()
         if tirette:
             self.robot.start_time = time.time()
             return py_trees.common.Status.SUCCESS
@@ -263,9 +263,10 @@ class GetSide(py_trees.behaviour.Behaviour):
 
     def update(self):
         pos = self.robot.getPos()
-        #TODO Replace with switch on the robot
-        #TODO setup coordinates with LL
-        self.blackboard.side = (pos.x < 1500)  # True: left/False: right
+        #self.blackboard.side = (pos.x < 1500)  # True: left/False: right
+        side = self.robot.comm.getSide()
+        self.blackboard.side = side
+        self.logger.info(f"Determined side: {'Left (Yellow)' if side else 'Right (Blue)'}")
         return py_trees.common.Status.SUCCESS
 
 

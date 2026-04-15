@@ -7,7 +7,7 @@ logger = logging.getLogger(__name__)
 class Comm:
     """Classe qui gère la communication avec le LL, camera, LiDAR, etc..."""
     def __init__(self):
-        logger.info("Placeholder: Comm init")
+        logger.info("Comm init")
     def start_move(self,dist):
         logger.info("Placeholder: Moved %s", dist)
     def start_rotate(self, angle):
@@ -40,4 +40,11 @@ class Comm:
         return
     def link_frobidden(self, forbidden_zones):
         return
+    def isTierettePulled(self):
+        logger.info("Placeholder: Tirette state: %s", True)
+        return True 
+    def getSide(self):
+        logger.info("Placeholder: getSide %s: %s", id, True)
+        return True # True Left (yellow)/ False Right (blue)
+
 
