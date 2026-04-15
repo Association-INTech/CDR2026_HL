@@ -59,7 +59,8 @@ if __name__ == "__main__":
     robot = RobotChasseNeige(
         pos=startPos, 
         comm=comm,
-        wait_for_is_idle=False,  # Wait for is_idle from LL and if recieved then consider action done
+        idle_time_buffer=0.5,
+        action_timeout=10
     )
 
     root = py_trees.composites.Sequence("MainSequence", memory=True)

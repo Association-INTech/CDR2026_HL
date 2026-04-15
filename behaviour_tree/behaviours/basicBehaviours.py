@@ -154,17 +154,12 @@ class Rotate(py_trees.behaviour.Behaviour):
         self.id=self.robot.start_rotate(self.angle)
 
     def update(self):
-        if not self.robot.wait_for_is_idle:
-            if time.time() - self.start_time > 5:
-                self.logger.debug(f"Rotate action timeout: {self.angle}° in {time.time() - self.start_time:.2f}s")
-                return py_trees.common.Status.SUCCESS
-            return py_trees.common.Status.RUNNING
         if time.time() - self.start_time > 5:
             self.logger.debug(f"Rotate action timeout: {self.angle}° in {time.time() - self.start_time:.2f}s")
             return py_trees.common.Status.FAILURE
-        if not self.robot.is_idle() or time.time() - self.start_time < 0.5:
-            return py_trees.common.Status.RUNNING
-        return py_trees.common.Status.SUCCESS        
+        if self.robot.is_idle() and time.time() - self.start_time > self.robot.idle_time_buffer:
+            return py_trees.common.Status.SUCCESS
+        return py_trees.common.Status.RUNNING        
                
 class Move(py_trees.behaviour.Behaviour):
     """Move robot forward by a given distance"""
@@ -179,17 +174,12 @@ class Move(py_trees.behaviour.Behaviour):
         self.id=self.robot.start_move(self.distance)
 
     def update(self):
-        if not self.robot.wait_for_is_idle:
-            if time.time() - self.start_time > 5:
-                self.logger.debug(f"Move action timeout: {self.distance}mm in {time.time() - self.start_time:.2f}s")
-                return py_trees.common.Status.SUCCESS
-            return py_trees.common.Status.RUNNING
-        if time.time() - self.start_time > 5:
+        if time.time() - self.start_time > self.robot.action_timeout:
             self.logger.debug(f"Move action timeout: {self.distance}mm in {time.time() - self.start_time:.2f}s")
             return py_trees.common.Status.FAILURE
-        if not self.robot.is_idle() or time.time() - self.start_time < 0.5:
-            return py_trees.common.Status.RUNNING
-        return py_trees.common.Status.SUCCESS        
+        if self.robot.is_idle() and time.time() - self.start_time > self.robot.idle_time_buffer:
+            return py_trees.common.Status.SUCCESS
+        return py_trees.common.Status.RUNNING        
 
 class TopBarrier(py_trees.behaviour.Behaviour):
     def __init__(self, name: str, robot, state: bool) -> None:
@@ -202,17 +192,12 @@ class TopBarrier(py_trees.behaviour.Behaviour):
         self.id=self.robot.top_barrier(self.state)
 
     def update(self):
-        if not self.robot.wait_for_is_idle:
-            if time.time() - self.start_time > 5:
-                self.logger.debug(f"Top Barrier action timeout: {self.state} in {time.time() - self.start_time:.2f}s")
-                return py_trees.common.Status.SUCCESS
-            return py_trees.common.Status.RUNNING
-        if time.time() - self.start_time > 5:
+        if time.time() - self.start_time > self.robot.action_timeout:
             self.logger.debug(f"Top Barrier action timeout: {self.state} in {time.time() - self.start_time:.2f}s")
             return py_trees.common.Status.FAILURE
-        if not self.robot.is_idle() or time.time() - self.start_time < 0.5:
-            return py_trees.common.Status.RUNNING
-        return py_trees.common.Status.SUCCESS        
+        if self.robot.is_idle() and time.time() - self.start_time > self.robot.idle_time_buffer:
+            return py_trees.common.Status.SUCCESS
+        return py_trees.common.Status.RUNNING        
 
 class BottomBarrier(py_trees.behaviour.Behaviour):
     def __init__(self, name: str, robot, state: bool) -> None:
@@ -225,17 +210,12 @@ class BottomBarrier(py_trees.behaviour.Behaviour):
         self.id=self.robot.bottom_barrier(self.state)
 
     def update(self):
-        if not self.robot.wait_for_is_idle:
-            if time.time() - self.start_time > 5:
-                self.logger.debug(f"Bottom Barrier action timeout: {self.state} in {time.time() - self.start_time:.2f}s")
-                return py_trees.common.Status.SUCCESS
-            return py_trees.common.Status.RUNNING
         if time.time() - self.start_time > 5:
             self.logger.debug(f"Bottom Barrier action timeout: {self.state} in {time.time() - self.start_time:.2f}s")
             return py_trees.common.Status.FAILURE
-        if not self.robot.is_idle() and time.time() - self.start_time > 0.5:
-            return py_trees.common.Status.RUNNING
-        return py_trees.common.Status.SUCCESS        
+        if self.robot.is_idle() and time.time() - self.start_time > self.robot.idle_time_buffer:
+            return py_trees.common.Status.SUCCESS
+        return py_trees.common.Status.RUNNING        
 
 class UpdateNoisettePos(py_trees.behaviour.Behaviour):
     """Updates the NutBox position after being pushed"""

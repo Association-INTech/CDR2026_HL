@@ -15,13 +15,14 @@ class Robot:
     HEIGHT=175
 
     
-    def __init__(self, pos, comm, wait_for_is_idle=True):
+    def __init__(self, pos, comm, idle_time_buffer=0.5, action_timeout=5):
         setup_logging()
         self.pos=pos
         self.comm=comm
         self.actions=[]
+        self.idle_time_buffer = idle_time_buffer
+        self.action_timeout = action_timeout
         self.__countID=0 #variable de classe pour avoir un id
-        self.wait_for_is_idle=wait_for_is_idle
         self.start_time = time.time()
         self.logger = logging.getLogger("Robot")
         self.graph=GridGraph(AREA_WIDTH,AREA_HEIGHT,scale=10, rotate_buffer=Robot.HEIGHT//2)
