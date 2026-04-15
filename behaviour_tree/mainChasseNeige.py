@@ -15,7 +15,7 @@ setup_logging()
 import py_trees
 from behaviour_tree.utilities.robot import RobotChasseNeige
 from behaviour_tree.behaviours.strategieChasseNeige import ProcedureNoisette, setup
-from behaviour_tree.behaviours.basicBehaviours import Start, GetSide, CheckTime, SetLoc, GoToLoc, CheckLidar, Stop
+from behaviour_tree.behaviours.basicBehaviours import Start, GetSide, CheckTime, SetLoc, GoToLoc, CheckLidar, Stop, SetPosOffset
 from behaviour_tree.utilities.position import Position
 
 import argparse
@@ -37,7 +37,7 @@ else:
 
 if __name__ == "__main__":
     DISTANCE_CODEUSES = 54
-    startPos = Position(270, DISTANCE_CODEUSES, 90)
+    startPos = Position(420, DISTANCE_CODEUSES, 90)
     ORDER=[2,3,0] #for left side
     TIMEGOBACK= 80 # seconds until robot should start going back to start position
     USELIDAR = False
@@ -52,22 +52,23 @@ if __name__ == "__main__":
         pos=startPos,
         speed=250,
         )
-        comm = Comm(simRobot,startPos=startPos)
+        comm = Comm(simRobot)
     else:
-        comm = Comm(startPos=startPos)
+        comm = Comm()
     
     robot = RobotChasseNeige(
         pos=startPos, 
         comm=comm,
-        wait_for_is_idle=True,  # Wait for is_idle from LL and if recieved then consider action done
+        idle_time_buffer=0.5,
+        action_timeout=10
     )
 
     root = py_trees.composites.Sequence("MainSequence", memory=True)
     root.add_child(Start(name="wait_start_signal", robot=robot))
+    root.add_child(SetPosOffset(name="set_pos_offset", robot=robot))
     root.add_child(GetSide(name="get_side", robot=robot))
-    
     root.add_child(setup(name="setup", order=ORDER, robot=robot))
-    
+
     sequence_strategie = py_trees.composites.Sequence("sequence_strategie", memory=True)
     
     fallback_lidar = py_trees.composites.Selector("lidar_fallback", memory=True)

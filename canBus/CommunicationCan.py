@@ -7,6 +7,7 @@ import math
 from behaviour_tree.utilities.communication import Comm
 from behaviour_tree.utilities.position import Position
 from lidar.hokuyo.scan_lidar import run
+from gpio_interface.gpio_read import GPIORead
 
 logger = logging.getLogger(__name__)
 
@@ -28,14 +29,22 @@ reg_action = CanBus.reg_action
 
 
 class CommunicationCan(Comm):
-    def __init__(self, startPos, reg_type: str ="asserv"):
-        super().__init__(startPos)
+    def __init__(self, reg_type: str ="asserv"):
+        super().__init__()
         try:
             self.bus = CanBus(reg_type)
         except Exception as e:
             logger.critical("CAN ERROR: Could not init: %s", e)
             raise e
-    
+        try:
+            SIDE_SWITCH_PIN = 8
+            self.gpio_side_switch = GPIORead(SIDE_SWITCH_PIN)
+            TIRETTE_PIN = 28
+            self.gpio_tirette = GPIORead(TIRETTE_PIN)
+        except Exception as e:
+            logger.critical("GPIO ERROR: Could not init: %s", e)
+            raise e
+
     def _safe_request(self, command, *args, default=None):
         """CAN request with error handling"""
         try:
@@ -85,7 +94,7 @@ class CommunicationCan(Comm):
             return gates if gates is not None else [0, 0, 0, 0]
         except Exception as e:
             logger.error("Camera failure: %s", e)
-            return [0, 0, 0, 0] 
+            return super().checkCamera(side)  # default
         
     def lidar(self, pos):
         try:
@@ -100,7 +109,7 @@ class CommunicationCan(Comm):
             
         except Exception as e:
                 logger.error("LIDAR failure: %s", e)
-                return [0, 0, 0, 0] 
+                return super().lidar(pos)  # default 
 
 
     #request
@@ -119,7 +128,22 @@ class CommunicationCan(Comm):
             return None 
         x, y, angle = res
         x,y,angle = res
-        return Position(x, y, angle).add(self.startPos)
+        return Position(x, y, angle)
+    
+    def isTierettePulled(self):
+        try:
+            return not self.gpio_tirette.read()
+        except Exception as e:
+            logger.critical("GPIO ERROR: Could not read tirette: %s", e)
+            return super().isTierettePulled()  # default
+
+
+    def getSide(self):
+        try:
+            return self.gpio_side_switch.read()
+        except Exception as e:
+            logger.critical("GPIO ERROR: Could not read side switch: %s", e)
+            return super().getSide()  # default
 
     #action
 

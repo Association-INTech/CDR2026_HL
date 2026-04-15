@@ -47,15 +47,16 @@ class Rectangle:
 
 class SimRobot():
     def __init__(self, pos, color=(255, 0, 0), speed=250):
-        self.pos = pos
+        self.REF_WIDTH = 310
+        self.REF_HEIGHT = 175
+        
+        self.pos = Position(0,0,0)
+        self.setCenterPos(pos)
         self.color = color
         self.speed = speed
         self.area_width = 3000
         self.area_height = 2000
-        
-        self.REF_WIDTH = 310
-        self.REF_HEIGHT = 175
-        
+                
         if self.pos.angle % 180 == 0:
             self.width, self.height = self.REF_HEIGHT, self.REF_WIDTH
         else:
@@ -85,6 +86,17 @@ class SimRobot():
         center_y = self.pos.y + self.height // 2
         return Position(center_x, center_y, self.pos.angle)
 
+    def setCenterPos(self, centerPos):
+        if centerPos.angle == 0 or centerPos.angle == 180:
+            self.width = self.REF_HEIGHT
+            self.height = self.REF_WIDTH
+        else:
+            self.width = self.REF_WIDTH
+            self.height = self.REF_HEIGHT
+
+        self.pos.x = centerPos.x - self.width // 2
+        self.pos.y = centerPos.y - self.height // 2
+        self.pos.angle = centerPos.angle
 
     def handle_input(self, dt, groupList=[]):
         keys = pygame.key.get_pressed()
