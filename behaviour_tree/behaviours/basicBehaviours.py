@@ -383,3 +383,20 @@ class Stop(py_trees.behaviour.Behaviour):
         if self.robot.comm.get_feedback(self.id):
             return py_trees.common.Status.SUCCESS
         return py_trees.common.Status.FAILURE
+    
+class SetPosOffset(py_trees.behaviour.Behaviour):
+    """Set position offset with LL"""
+
+    def __init__(self, name: str, robot):
+        super().__init__(name)
+        self.robot = robot
+
+    def update(self):
+        posComm = self.robot.comm.get_position()
+        self.logger.info(f"SetPosOffset: posComm {posComm}, current robot pos {self.robot.pos}")
+        if posComm is None:
+            self.logger.warning("SetPosOffset: get_position returned None, offset not updated")
+            return py_trees.common.Status.RUNNING
+        self.robot.commPosOffset = self.robot.pos.difference(posComm)
+        self.logger.info(f"SetPosOffset: Updated position offset to {self.robot.commPosOffset}")
+        return py_trees.common.Status.SUCCESS

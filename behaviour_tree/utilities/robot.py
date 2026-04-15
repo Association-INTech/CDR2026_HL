@@ -15,13 +15,14 @@ class Robot:
     HEIGHT=175
 
     
-    def __init__(self, pos, comm, idle_time_buffer=0.5, action_timeout=5):
+    def __init__(self, startPos, comm, idle_time_buffer=0.5, action_timeout=5):
         setup_logging()
-        self.pos=pos
+        self.pos=startPos
+        self.commPosOffset=Position(0,0,0)
         self.comm=comm
         self.actions=[]
-        self.idle_time_buffer = idle_time_buffer
-        self.action_timeout = action_timeout
+        self.idle_time_buffer = idle_time_buffer # Time buffer to consider the robot idle after an action
+        self.action_timeout = action_timeout # Timeout for action considered failed
         self.__countID=0 #variable de classe pour avoir un id
         self.start_time = time.time()
         self.logger = logging.getLogger("Robot")
@@ -101,7 +102,9 @@ class Robot:
     def update_position(self):
         pos = self.comm.get_position()
         if pos is not None:
-            self.pos = pos
+            adjusted_pos = pos.add(self.commPosOffset)
+            self.logger.debug(f"Pos: get_position: {pos}, setting pos to {adjusted_pos}")
+            self.pos = adjusted_pos
         else:
             self.logger.warning("Pos: get_position returned none, pos maintained  %s", self.pos)
     
@@ -158,16 +161,16 @@ class Robot:
         return is_idle #check if actions empty
 
 class RobotChasseNeige(Robot):
-    def __init__(self, pos, comm, wait_for_is_idle=True):
-        super().__init__(pos, comm, wait_for_is_idle)
-        
+    def __init__(self, pos, comm, idle_time_buffer=0.5, action_timeout=5):
+        super().__init__(pos, comm, idle_time_buffer, action_timeout)
+
     def getNutBoxPos(self):
         self.update()
         return self.pos.foward(Robot.HEIGHT//2)
 
 class RobotMagicoBus(Robot):
-    def __init__(self, pos, comm, wait_for_is_idle=True):
-        super().__init__(pos, comm, wait_for_is_idle)
+    def __init__(self, pos, comm, idle_time_buffer=0.5, action_timeout=5):
+        super().__init__(pos, comm, idle_time_buffer, action_timeout)
         
     def getNutBoxPos(self):
         self.update()

@@ -28,8 +28,8 @@ reg_action = CanBus.reg_action
 
 
 class CommunicationCan(Comm):
-    def __init__(self, startPos, reg_type: str ="asserv"):
-        super().__init__(startPos)
+    def __init__(self, reg_type: str ="asserv"):
+        super().__init__()
         try:
             self.bus = CanBus(reg_type)
         except Exception as e:
@@ -119,7 +119,7 @@ class CommunicationCan(Comm):
             return None 
         x, y, angle = res
         x,y,angle = res
-        return Position(x, y, angle).add(self.startPos)
+        return Position(x, y, angle)
 
     #action
 

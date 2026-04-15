@@ -6,8 +6,8 @@ logger = logging.getLogger(__name__)
 
 class Comm:
     """Classe qui gère la communication avec le LL, camera, LiDAR, etc..."""
-    def __init__(self, startPos):
-        self.startPos = startPos
+    def __init__(self):
+        logger.info("Placeholder: Comm init")
     def start_move(self,dist):
         logger.info("Placeholder: Moved %s", dist)
     def start_rotate(self, angle):
