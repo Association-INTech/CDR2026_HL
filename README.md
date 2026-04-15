@@ -4,22 +4,21 @@ Remplacer par l'addresse IP de la pi (-X nécessaire pour pouvoir éxécuter la 
 ```bash
    ssh -X intech@192.168.1.175 
 ```
- -X nécessaire pour éxecuter la console CAN
-
 Aller dans le repo CDR2026_HL sur la pi_ 
 Par exemple:
 ```bash
    cd cdr/CDR2026_HL
 ```
 
-# Stratégie principal en 1 commande
+# Script pour éxecuter stratégie principal
+(Ça prend du temps c'est normal)
 ```bash
    ./run.sh
 ```
 
 # Lancement
 
-## Setup CAN/Lidar
+## Setup CAN/Lidar (À faire en premier)
 
 ```bash
    ./canBus/setup_can.sh
@@ -32,7 +31,7 @@ lidar/hokuyo/setup_lidar.sh
 
 ## Option 1 (avec venv)
 
-Requirement: avoir config l'env sur la pi au préalable
+Requirement: avoir config l'env sur la pi au préalable (Deja fait)
 
 ### Setup env
 ```bash
@@ -55,10 +54,14 @@ Console CAN
    python canBus/CommunicationCan.py
 ```
 
+Camera
+```bash
+   python camera/tag_aruco_scanner.py
+```
 
 ## Option 2 (avec uv)
 
-Requirement: avoir installé uv sur la pi
+Requirement: avoir installé uv sur la pi (Deja fait)
 
 ### Setup env
 ```bash
@@ -80,6 +83,13 @@ Console CAN
 ```bash
    uv run canBus/CommunicationCan.py
 ```
+
+Camera
+```bash
+   uv run camera/tag_aruco_scanner.py
+```
+
+
 # Simulation
 Après avoir installé uv:  https://docs.astral.sh/uv/getting-started/installation/
 ```bash
