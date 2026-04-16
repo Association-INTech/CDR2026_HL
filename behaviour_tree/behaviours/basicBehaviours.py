@@ -159,7 +159,7 @@ class Rotate(py_trees.behaviour.Behaviour):
         self.id=self.robot.start_rotate(self.angle)
 
     def update(self):
-        if time.time() - self.start_time > 5:
+        if time.time() - self.start_time > self.robot.action_timeout:
             self.logger.debug(f"Rotate action timeout: {self.angle}° in {time.time() - self.start_time:.2f}s")
             return py_trees.common.Status.FAILURE
         if self.robot.is_idle() and time.time() - self.start_time > self.robot.idle_time_buffer:

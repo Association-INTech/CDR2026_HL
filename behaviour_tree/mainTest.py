@@ -61,7 +61,7 @@ if __name__ == "__main__":
         pos=startPos, 
         comm=comm,
         idle_time_buffer=2,
-        action_timeout=100
+        action_timeout=10
     )
 
     root = py_trees.composites.Sequence("MainSequence", memory=True)

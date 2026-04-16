@@ -60,7 +60,7 @@ if __name__ == "__main__":
     robot = RobotChasseNeige(
         pos=startPos, 
         comm=comm,
-        idle_time_buffer=0.5,
+        idle_time_buffer=2,
         action_timeout=10
     )
 
