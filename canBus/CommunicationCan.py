@@ -132,7 +132,7 @@ class CommunicationCan(Comm):
     
     def isTierettePulled(self):
         try:
-            return not self.gpio_tirette.read()
+            return not self.gpio_tirette.getPinInput()
         except Exception as e:
             logger.critical("GPIO ERROR: Could not read tirette: %s", e)
             return super().isTierettePulled()  # default
@@ -140,7 +140,7 @@ class CommunicationCan(Comm):
 
     def getSide(self):
         try:
-            return self.gpio_side_switch.read()
+            return self.gpio_side_switch.getPinInput()
         except Exception as e:
             logger.critical("GPIO ERROR: Could not read side switch: %s", e)
             return super().getSide()  # default
