@@ -14,7 +14,7 @@ setup_logging()
 
 import py_trees
 from behaviour_tree.utilities.robot import RobotChasseNeige, AREA_WIDTH
-from behaviour_tree.behaviours.strategieChasseNeige import ProcedureNoisette, setup
+from behaviour_tree.behaviours.strategieChasseNeige import ProcedureNoisette, PushCurrentNutBoxChildren, setup
 from behaviour_tree.behaviours.basicBehaviours import Start, GetSide, CheckTime, SetLoc, GoToLoc, CheckLidar, Stop, Move, Rotate, SetPosOffset, SetStartPos
 from behaviour_tree.utilities.position import Position
 
@@ -38,7 +38,7 @@ else:
 if __name__ == "__main__":
     DISTANCE_CODEUSES = 54
     startPos = Position(420, DISTANCE_CODEUSES, 90)
-    ORDER=[2,3,0] #for left side
+    ORDER=[0] #for left side
     TIMEGOBACK= 80 # seconds until robot should start going back to start position
     USELIDAR = True
     USECAMERA = True
@@ -60,7 +60,7 @@ if __name__ == "__main__":
     robot = RobotChasseNeige(
         pos=startPos, 
         comm=comm,
-        idle_time_buffer=2,
+        idle_time_buffer=4,
         action_timeout=10
     )
 
@@ -73,9 +73,9 @@ if __name__ == "__main__":
 
     sequence_strategie = py_trees.composites.Sequence("sequence_strategie", memory=True)
     
-    sequence_strategie.add_child(Move(name="Move1", value=500, robot=robot))
-    sequence_strategie.add_child(Rotate(name="Rotate1", value=180, robot=robot))
-    sequence_strategie.add_child(Move(name="Move2", value=500, robot=robot))    
+    sequence_strategie.add_child(Move(name="Move1", value=260+RobotChasseNeige.HEIGHT-DISTANCE_CODEUSES, robot=robot))
+    sequence_strategie.add_child(PushCurrentNutBoxChildren(name="Push", robot=robot))
+    sequence_strategie.add_child(Move(name="goBack", value=-600, robot=robot))    
     root.add_child(sequence_strategie)
     
     
