@@ -117,7 +117,7 @@ if __name__ == "__main__":
     # Lancement
     while True:
         try:
-            print(run(0,0,0))
+            print(run(155,54,0))
         except Exception as e:
             print("Erreur lors du lancement de run()", e)
             time.sleep(1)

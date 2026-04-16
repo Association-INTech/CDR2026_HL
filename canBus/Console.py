@@ -123,8 +123,8 @@ class Console:
                     if self.bus.reg[msg_name][0] < limite:
                         try:
                             self.bus.send(msg_name, *args)
-                        except:
-                            self.write("Ereur lors de l'envoi de send()\n")
+                        except Exception as e:
+                            self.write(f"Ereur lors de l'envoi de send(): {e}\n")
                     else:
                         try:
                             callback = str(self.bus.request(msg_name))
@@ -151,8 +151,8 @@ class Console:
                     if self.bus.reg[msg_name][0] < limite:
                         try:
                             self.bus.send(msg_name, *args)
-                        except:
-                            self.write("Ereur lors de l'envoi de send()\n")
+                        except Exception as e:
+                            self.write(f"Ereur lors de l'envoi de send(): {e}\n")
                     else:
                         try:
                             callback = str(self.bus.request(msg_name))
