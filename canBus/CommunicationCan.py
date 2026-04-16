@@ -37,7 +37,7 @@ class CommunicationCan(Comm):
             logger.critical("CAN ERROR: Could not init: %s", e)
             raise e
         try:
-            SIDE_SWITCH_PIN = 8
+            SIDE_SWITCH_PIN = 27
             self.gpio_side_switch = GPIORead(SIDE_SWITCH_PIN)
             TIRETTE_PIN = 23
             self.gpio_tirette = GPIORead(TIRETTE_PIN)

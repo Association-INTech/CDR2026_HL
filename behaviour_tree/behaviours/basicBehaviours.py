@@ -1,7 +1,7 @@
 import py_trees
 import time
 from behaviour_tree.utilities.position import Position
-from behaviour_tree.utilities.robot import NutBox, Robot
+from behaviour_tree.utilities.robot import AREA_WIDTH, NutBox, Robot
 
 class GetLoc(py_trees.behaviour.Behaviour):
     """Obtient le prochain endroit"""
@@ -118,6 +118,11 @@ class GoToLoc(py_trees.decorators.PassThrough):
                 return (Rotate,diff.angle)
 
         path=self.robot.graph.getShortestPathPos(currentPos,targetPos)
+
+        if path is None:
+            self.logger.error(f"No path found from {currentPos} to {targetPos}")
+            return
+
 
         raw_steps = []
         prev_class =  None
@@ -262,11 +267,35 @@ class GetSide(py_trees.behaviour.Behaviour):
         self.blackboard.register_key(key="side", access=py_trees.common.Access.WRITE)
 
     def update(self):
-        pos = self.robot.getPos()
+        #pos = self.robot.getPos()
         #self.blackboard.side = (pos.x < 1500)  # True: left/False: right
         side = self.robot.comm.getSide()
         self.blackboard.side = side
         self.logger.info(f"Determined side: {'Left (Yellow)' if side else 'Right (Blue)'}")
+        return py_trees.common.Status.SUCCESS
+
+
+class SetStartPos(py_trees.behaviour.Behaviour):
+
+    def __init__(self, name: str, robot, startPos: Position = None):
+        super().__init__(name)
+        self.robot = robot
+        self.startPos = startPos
+        self.blackboard = self.attach_blackboard_client(name=name)
+        self.blackboard.register_key(key="side", access=py_trees.common.Access.READ)
+        self.blackboard.register_key(key="startPos", access=py_trees.common.Access.WRITE)
+
+    def initialise(self):
+        if self.startPos is None:
+            self.startPos = self.robot.pos
+            self.logger.warning("SetStartPos: startPos arg is None, using %s", self.startPos)
+            return
+    
+    def update(self):
+        if self.blackboard.side: # left
+            self.blackboard.startPos = self.startPos
+        else: # right
+            self.blackboard.startPos = Position(AREA_WIDTH - self.startPos.x, self.startPos.y,  self.startPos.angle)
         return py_trees.common.Status.SUCCESS
 
 
@@ -391,13 +420,15 @@ class SetPosOffset(py_trees.behaviour.Behaviour):
     def __init__(self, name: str, robot):
         super().__init__(name)
         self.robot = robot
+        self.blackboard = self.attach_blackboard_client(name=name)
+        self.blackboard.register_key(key="startPos", access=py_trees.common.Access.READ)
 
     def update(self):
         posComm = self.robot.comm.get_position()
-        self.logger.info(f"SetPosOffset: posComm {posComm}, current robot pos {self.robot.pos}")
+        self.logger.info(f"SetPosOffset: posComm {posComm}, current robot pos {self.blackboard.startPos}")
         if posComm is None:
             self.logger.warning("SetPosOffset: get_position returned None, offset not updated")
             return py_trees.common.Status.RUNNING
-        self.robot.commPosOffset = self.robot.pos.difference(posComm)
+        self.robot.commPosOffset = self.blackboard.startPos.difference(posComm)
         self.logger.info(f"SetPosOffset: Updated position offset to {self.robot.commPosOffset}")
         return py_trees.common.Status.SUCCESS

@@ -13,9 +13,9 @@ from behaviour_tree.utilities.logging_setup import setup_logging
 setup_logging()
 
 import py_trees
-from behaviour_tree.utilities.robot import RobotChasseNeige
+from behaviour_tree.utilities.robot import RobotChasseNeige, AREA_WIDTH
 from behaviour_tree.behaviours.strategieChasseNeige import ProcedureNoisette, setup
-from behaviour_tree.behaviours.basicBehaviours import Start, GetSide, CheckTime, SetLoc, GoToLoc, CheckLidar, Stop, SetPosOffset
+from behaviour_tree.behaviours.basicBehaviours import Start, GetSide, CheckTime, SetLoc, GoToLoc, CheckLidar, Stop, SetPosOffset, SetStartPos
 from behaviour_tree.utilities.position import Position
 
 import argparse
@@ -48,6 +48,7 @@ if __name__ == "__main__":
     logger.info(f"Start position: {startPos}, Order: {ORDER}, Go-back time limit: {TIMEGOBACK}s")
     
     if SIMULATION:
+        simStartPos = Position(AREA_WIDTH - startPos.x, startPos.y,  startPos.angle)
         simRobot = SimRobot(
         pos=startPos,
         speed=250,
@@ -65,8 +66,9 @@ if __name__ == "__main__":
 
     root = py_trees.composites.Sequence("MainSequence", memory=True)
     root.add_child(Start(name="wait_start_signal", robot=robot))
-    root.add_child(SetPosOffset(name="set_pos_offset", robot=robot))
     root.add_child(GetSide(name="get_side", robot=robot))
+    root.add_child(SetStartPos(name="set_start_pos", robot=robot, startPos=startPos))
+    root.add_child(SetPosOffset(name="set_pos_offset", robot=robot))
     root.add_child(setup(name="setup", order=ORDER, robot=robot))
 
     sequence_strategie = py_trees.composites.Sequence("sequence_strategie", memory=True)

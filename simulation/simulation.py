@@ -6,7 +6,7 @@ from pathlib import Path
 
 #Fix relative imports
 if __package__ is None or __package__ == "":
-    sys.path.append(str(Path(__file__).resolve().parent.parent.parent))
+    sys.path.append(str(Path(__file__).resolve().parent.parent))
 
 from behaviour_tree.utilities.position import Position
 
@@ -110,7 +110,7 @@ class SimRobot():
         dy = coef * self.speed * dt * math.sin(math.radians(self.pos.angle))
         self.pos.x += dx
         self.pos.y += dy
-        self.clamp_to_bounds()
+        #self.clamp_to_bounds()
 
         collide = self.collidelistallNutBoxGroup(groupList)
         
@@ -140,7 +140,7 @@ class SimRobot():
 
         self.pos.x += dx
         self.pos.y += dy
-        self.clamp_to_bounds()
+        #self.clamp_to_bounds()
         self.move_remaining -= abs(step)
 
         print(f"Step: {step}")
@@ -163,7 +163,7 @@ class SimRobot():
 
         self.pos.x = center.x - self.width // 2
         self.pos.y = center.y - self.height // 2
-        self.clamp_to_bounds()
+        #self.clamp_to_bounds()
 
     def updateRect(self):
         self.rect = pygame.Rect(self.pos.x, self.pos.y, self.width, self.height)
