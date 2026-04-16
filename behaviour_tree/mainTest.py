@@ -14,7 +14,7 @@ setup_logging()
 
 import py_trees
 from behaviour_tree.utilities.robot import RobotChasseNeige, AREA_WIDTH
-from behaviour_tree.behaviours.strategieChasseNeige import ProcedureNoisette, PushCurrentNutBoxChildren, setup
+from behaviour_tree.behaviours.strategieChasseNeige import ProcedureNoisette, PushCurrentNutBoxChildren, setup, GetNextNoisette
 from behaviour_tree.behaviours.basicBehaviours import Start, GetSide, CheckTime, SetLoc, GoToLoc, CheckLidar, Stop, Move, Rotate, SetPosOffset, SetStartPos
 from behaviour_tree.utilities.position import Position
 
@@ -74,6 +74,7 @@ if __name__ == "__main__":
     sequence_strategie = py_trees.composites.Sequence("sequence_strategie", memory=True)
     
     sequence_strategie.add_child(Move(name="Move1", value=260+RobotChasseNeige.HEIGHT-DISTANCE_CODEUSES, robot=robot))
+    sequence_strategie.add_child(Get(name="Push", robot=robot))
     sequence_strategie.add_child(PushCurrentNutBoxChildren(name="Push", robot=robot))
     sequence_strategie.add_child(Move(name="goBack", value=-600, robot=robot))    
     root.add_child(sequence_strategie)
