@@ -140,6 +140,27 @@ class GoToLoc(py_trees.decorators.PassThrough):
         self.blackboard.plan = steps
         self.main_sequence.add_children(stepsBT)      
 
+    def createPlanGraphSetPos(self):
+        steps = []
+        stepsBT = []
+
+        currentPos = self.robot.getPos()
+        targetPos = Position(self.blackboard.loc.x,self.blackboard.loc.y,self.blackboard.loc.angle)        
+
+        path=self.robot.graph.getShortestPathPos(currentPos,targetPos)
+        if path is None:
+            self.logger.error(f"No path found from {currentPos} to {targetPos}")
+            return
+        path_optimized = [path[0]]
+        
+        for i in range(len(path)-1):
+            if (path[i].angle == path[i+1].angle):
+                continue
+            path_optimized.append(path[i+1])
+        
+        path_optimized.append(path[-1])
+
+
 
 class Rotate(py_trees.behaviour.Behaviour):
     """Rotate robot by a given angle"""
