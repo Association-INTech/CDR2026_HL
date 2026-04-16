@@ -40,7 +40,7 @@ if __name__ == "__main__":
     startPos = Position(420, DISTANCE_CODEUSES, 90)
     ORDER=[2,3,0] #for left side
     TIMEGOBACK= 80 # seconds until robot should start going back to start position
-    USELIDAR = False
+    USELIDAR = True
     USECAMERA = True
     
     logger = logging.getLogger(__name__)
