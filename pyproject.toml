@@ -5,6 +5,8 @@ requires-python = ">=3.12"
 dependencies = [
     "py-trees>=2.4.0",
     "pygame>=2.6.1",
+    "pyserial>=3.5",
+    "serial>=0.0.97",
 ]
 
 [project.optional-dependencies]

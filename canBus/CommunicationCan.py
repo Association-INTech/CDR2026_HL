@@ -4,45 +4,23 @@ import logging
 
 import math
 
-from utilities.communication import Comm
+from utilities.communicationHardware import CommHardware
 from utilities.position import Position
-from lidar.hokuyo.scan_lidar import run
-from gpio_interface.gpio_read import GPIORead
 
 logger = logging.getLogger(__name__)
 
 
-try:
-    from camera.shift import gates_setup, set_gates
-except ModuleNotFoundError:
-    logger.warning("Camera: import failed")
-except Exception as e:
-    logger.warning("Camera: failed to setup: %s", e)
-
-from canBus.CanBus import CanBus
+from canBus.CanBus import CanBus, reg_asserv, reg_action
 #import CanBus
 
 
-
-reg_asserv = CanBus.reg_asserv
-reg_action = CanBus.reg_action
-
-
-class CommunicationCan(Comm):
+class CommunicationCan(CommHardware):
     def __init__(self, reg_type: str ="asserv"):
         super().__init__()
         try:
             self.bus = CanBus(reg_type)
         except Exception as e:
             logger.critical("CAN ERROR: Could not init: %s", e)
-            raise e
-        try:
-            SIDE_SWITCH_PIN = 14
-            self.gpio_side_switch = GPIORead(SIDE_SWITCH_PIN)
-            TIRETTE_PIN = 20
-            self.gpio_tirette = GPIORead(TIRETTE_PIN)
-        except Exception as e:
-            logger.critical("GPIO ERROR: Could not init: %s", e)
             raise e
 
     def _safe_request(self, command, *args, default=None):
@@ -90,32 +68,6 @@ class CommunicationCan(Comm):
         self.bus.send("stop")
         logger.debug("CAN: Stop command sent")
 
-    def checkCamera(self, side ):
-        color = "yellow" if side else "blue"
-        try:
-            gates = gates_setup(color)
-            logger.debug("Camera: Gates detected: %s", gates)
-            return gates if gates is not None else [0, 0, 0, 0]
-        except Exception as e:
-            logger.error("Camera failure: %s", e)
-            return super().checkCamera(side)  # default
-        
-    def lidar(self, pos):
-        try:
-            x0,y0,theta = pos
-            is_valid, dist, angle = run(x0,y0,theta)
-            THRESHOLD = 100  #TODO test to determine threshold (idk if this is correct)
-            
-            if is_valid and dist < THRESHOLD:
-                logger.info("LIDAR: Obstacle detected, dist: %smm, threshold: %smm", dist, THRESHOLD)
-                return True 
-            return False    
-            
-        except Exception as e:
-                logger.error("LIDAR failure: %s", e)
-                return super().lidar(pos)  # default 
-
-
     #request
     def get_feedback(self,id=None):
         if self.bus.reg != reg_asserv:
@@ -136,21 +88,6 @@ class CommunicationCan(Comm):
         pos = Position(x, y, angle)
         logger.debug("CAN: get position: %s", pos)
         return pos
-    
-    def isTierettePulled(self):
-        try:
-            return not self.gpio_tirette.getPinInput()
-        except Exception as e:
-            logger.critical("GPIO ERROR: Could not read tirette: %s", e)
-            return super().isTierettePulled()  # default
-
-
-    def getSide(self):
-        try:
-            return self.gpio_side_switch.getPinInput()
-        except Exception as e:
-            logger.critical("GPIO ERROR: Could not read side switch: %s", e)
-            return super().getSide()  # default
 
     #action
 

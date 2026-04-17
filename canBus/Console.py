@@ -8,14 +8,8 @@ if __package__ is None or __package__ == "":
     sys.path.append(str(Path(__file__).resolve().parent.parent))
 
 
-from canBus.CanBus import CanBus
+from canBus.CanBus import CanBus, reg_asserv, reg_action, limite
 import tkinter as tk
-
-
-reg_asserv = CanBus.reg_asserv
-reg_action = CanBus.reg_action
-
-limite = CanBus.limite
 
 class Console:
     

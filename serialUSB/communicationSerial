@@ -1,0 +1,68 @@
+#!/usr/bin/env python3
+
+import logging
+import math
+import time
+
+from utilities.position import Position
+from utilities.communicationHardware import CommHardware
+from serialUSB.serialBus import SerialBus, reg_action, reg_asserv
+
+logger = logging.getLogger(__name__)
+
+class CommunicationSerial(CommHardware):
+    def __init__(self):
+        super().__init__()
+        portAsserv="/dev/ttyUSB0"
+        portAction="/dev/ttyUSB1"
+        baudrate = 115200
+        timeout = 1.0
+        self.serialBusAsserv = SerialBus(reg_asserv, portAsserv, baudrate, timeout)
+        self.serialBusAction = SerialBus(reg_action, portAction, baudrate, timeout)
+
+    def _safe_request(self, command: str, bus, default=None):
+        """Serial request-response handling"""
+        try:
+            res = bus.request(command)
+            if res is None:
+                logger.error("SERIAL ERROR: Empty response for: %s", command)
+                return default
+            return res
+            
+        except Exception as e:
+            logger.critical("SERIAL ERROR: Error for %s: %s", command, e)
+        
+        return default
+
+    def _send(self, command: str, bus, *args):
+        try:
+            bus.send(command, *args)
+        except Exception as e:
+            logger.error("SERIAL ERROR: Could not send %s: %s", command, e)
+
+    def start_move(self, distance: float):
+        self._send("move", self.serialBusAsserv, -distance)
+
+    def start_rotate(self, angle: float):
+        angle_rad = angle * math.pi / 180
+        self._send("rotate", self.serialBusAsserv, angle_rad)
+    
+    def set_position(self, x: float, y: float):
+        self._send("set_pos", self.serialBusAsserv, x, y)
+    
+    def stop(self):
+        self._send("stop", self.serialBusAsserv)
+
+
+    def get_feedback(self, id=None):
+        res = self._safe_request("is_idle", self.serialBusAsserv, default=False)
+        return res
+
+    def get_position(self):
+        res = self._safe_request("get_pos", self.serialBusAsserv) # Expecting "x,y,angle"
+        if res is None or not isinstance(res, list) or len(res) < 3:
+            return None 
+        x, y, angle = res
+        pos = Position(x, y, angle)
+        logger.debug("SERIAL: get position: %s", pos)
+        return pos
