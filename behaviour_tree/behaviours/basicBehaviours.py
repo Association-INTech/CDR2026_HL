@@ -1,6 +1,6 @@
 import py_trees
 import time
-from behaviour_tree.utilities.position import Position
+from utilities.position import Position
 from behaviour_tree.utilities.robot import AREA_WIDTH, NutBox, Robot
 
 class GetLoc(py_trees.behaviour.Behaviour):

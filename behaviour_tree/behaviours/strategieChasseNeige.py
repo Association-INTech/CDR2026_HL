@@ -1,6 +1,6 @@
 import py_trees
 import time
-from behaviour_tree.utilities.position import Position
+from utilities.position import Position
 from behaviour_tree.utilities.robot import Robot, NutBox
 from behaviour_tree.behaviours.basicBehaviours import GetLoc, GoToLoc, Move, TopBarrier, BottomBarrier, UpdateNoisettePos, GetSide, Start, NutBoxShiftCamera, Push
 

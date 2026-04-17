@@ -6,14 +6,14 @@ if __package__ is None or __package__ == "":
     sys.path.append(str(Path(__file__).resolve().parent.parent))
 
 import logging
-from behaviour_tree.utilities.logging_setup import setup_logging
+from utilities.logging_setup import setup_logging
 
 setup_logging()
 
 from behaviour_tree.utilities.robot import RobotMagicoBus
 from behaviour_tree.behaviours.strategieMagicoBus import ProcedurePushNoisette
 from simulation.simulation import SimRobotMagicoBus
-from behaviour_tree.utilities.position import Position
+from utilities.position import Position
 from simulation.communicationSimulation import CommSim
 
 if __name__ == "__main__":

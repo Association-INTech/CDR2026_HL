@@ -8,7 +8,7 @@ if __package__ is None or __package__ == "":
     sys.path.append(str(Path(__file__).resolve().parent.parent))
 
 import logging
-from behaviour_tree.utilities.logging_setup import setup_logging
+from utilities.logging_setup import setup_logging
 
 setup_logging()
 
@@ -16,7 +16,7 @@ import py_trees
 from behaviour_tree.utilities.robot import RobotChasseNeige, AREA_WIDTH
 from behaviour_tree.behaviours.strategieChasseNeige import ProcedureNoisette, PushCurrentNutBoxChildren, setup, GetNextNoisette
 from behaviour_tree.behaviours.basicBehaviours import Start, GetSide, CheckTime, SetLoc, GoToLoc, CheckLidar, Stop, Move, Rotate, SetPosOffset, SetStartPos
-from behaviour_tree.utilities.position import Position
+from utilities.position import Position
 
 import argparse
 

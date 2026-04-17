@@ -4,8 +4,8 @@ import logging
 
 import math
 
-from behaviour_tree.utilities.communication import Comm
-from behaviour_tree.utilities.position import Position
+from utilities.communication import Comm
+from utilities.position import Position
 from lidar.hokuyo.scan_lidar import run
 from gpio_interface.gpio_read import GPIORead
 

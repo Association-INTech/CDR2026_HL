@@ -1,8 +1,8 @@
 import logging
 
-from behaviour_tree.utilities.position import Position
+from utilities.position import Position
 from simulation.simulation import Simulation
-from behaviour_tree.utilities.communication import Comm
+from utilities.communication import Comm
 
 
 logger = logging.getLogger(__name__)

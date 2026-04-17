@@ -1,5 +1,5 @@
 import py_trees
-from behaviour_tree.utilities.position import Position
+from utilities.position import Position
 from behaviour_tree.utilities.robot import Robot
 from behaviour_tree.behaviours.basicBehaviours import GetLoc, Move, UpdateNoisettePos, TopBarrier, BottomBarrier, GoToLoc
 

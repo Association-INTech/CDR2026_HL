@@ -1,9 +1,9 @@
-from behaviour_tree.utilities.position import Position
+from utilities.position import Position
 import logging
 import py_trees
 import time
 from behaviour_tree.utilities.graph import GridGraph
-from behaviour_tree.utilities.logging_setup import setup_logging
+from utilities.logging_setup import setup_logging
 
 AREA_WIDTH = 3000
 AREA_HEIGHT = 2000

@@ -8,7 +8,7 @@ from pathlib import Path
 if __package__ is None or __package__ == "":
     sys.path.append(str(Path(__file__).resolve().parent.parent))
 
-from behaviour_tree.utilities.position import Position
+from utilities.position import Position
 
 class Rectangle:
     def __init__(self, x, y, width, height, color, angle=0, speed=0):
