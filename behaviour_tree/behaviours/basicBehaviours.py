@@ -295,7 +295,7 @@ class SetStartPos(py_trees.behaviour.Behaviour):
         if self.blackboard.side: # left
             self.blackboard.startPos = self.startPos
         else: # right
-            self.blackboard.startPos = Position(AREA_WIDTH - self.startPos.x, self.startPos.y,  self.startPos.angle)
+            self.blackboard.startPos = self.startPos.getSymmetric(AREA_WIDTH)
         return py_trees.common.Status.SUCCESS
 
 
