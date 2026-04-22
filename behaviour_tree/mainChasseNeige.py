@@ -43,7 +43,7 @@ if __name__ == "__main__":
     USECAMERA = True
     ILDE_TIME_BUFFER = 2 # seconds minimum to wait after each action before starting the next one
     ACTION_TIMEOUT = 10 # seconds to wait before considering an action failed 
-    
+     
     logger = logging.getLogger(__name__)
     logger.info("===== Main Program Started =====")
     logger.info(f"Start position: {START_POS}, Order: {ORDER}, Go-back time limit: {TIMEGOBACK}s")
@@ -66,14 +66,14 @@ if __name__ == "__main__":
     )
     #Position of front of robot (Not centered around codeuses) when pushing noisette, where camera is checked 
     PUSH_POSITIONS = [
-        Position(275, 900, 270),   #0
+        Position(275, 900, 270),    #0
         Position(275, 1700, 270),   #1
-        None,   #2
-        Position(1000, 1725, 0),   #3
-        None,   #4
-        None,   #5
-        None,   #6
-        None    #7
+        None,                       #2
+        Position(1000, 1725, 0),    #3
+        None,                       #4
+        None,                       #5
+        None,                       #6
+        None                        #7
     ]
 
     # distance needed to push noisette from push position to fit all 4 nutboxes in the pantry
@@ -90,7 +90,10 @@ if __name__ == "__main__":
     
     GO_BACK_POS = Position(150, 100, 90)
 
+    # Create the behavior tree
     root = py_trees.composites.Sequence("MainSequence", memory=True)
+    
+    #--- Startup  ---
     root.add_child(Start(name="wait_start_signal", robot=robot))
     root.add_child(GetSide(name="get_side", robot=robot))
     root.add_child(SetStartPos(name="set_start_pos", robot=robot, startPos=START_POS))
@@ -99,6 +102,7 @@ if __name__ == "__main__":
 
     sequence_strategie = py_trees.composites.Sequence("sequence_strategie", memory=True)
     
+    #--- Lidar ---
     fallback_lidar = py_trees.composites.Selector("lidar_fallback", memory=True)
     fallback_lidar.add_child(CheckLidar(name="check_time_for_lidar", robot=robot))
     fallback_lidar.add_child(Stop(name="stop_for_lidar", robot=robot))
@@ -106,6 +110,7 @@ if __name__ == "__main__":
     if USELIDAR:
         sequence_strategie.add_child(fallback_lidar)
     
+    #--- Main Strategy ---
     procedure_limited_time = py_trees.composites.Sequence("procedure_limited_time", memory=True)
     procedure_limited_time.add_child(CheckTime(name="check_time_under_limit", robot=robot, end_time=TIMEGOBACK))
     procedure_limited_time.add_child(ProcedureNoisette(name="procedure_noisette", robot=robot))
@@ -115,7 +120,8 @@ if __name__ == "__main__":
         child=procedure_limited_time,
         num_success=len(ORDER),
     )
-
+    
+    #--- Go Back if Time is Up ---
     sequence_go_back = py_trees.composites.Sequence("sequence_go_back", memory=True)
     sequence_go_back.add_child(SetLoc(name="SetLoc_go_back", robot=robot, loc=GO_BACK_POS))
     sequence_go_back.add_child(GoToLoc(name="GoToLoc_go_back", robot=robot))
@@ -129,5 +135,5 @@ if __name__ == "__main__":
     root.add_child(sequence_strategie)
     
     
-
+    #--- Start the behavior tree ---
     robot.startBT(root, robot)

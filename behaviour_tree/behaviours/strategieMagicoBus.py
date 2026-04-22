@@ -1,7 +1,10 @@
 import py_trees
+import logging
 from utilities.position import Position
 from behaviour_tree.utilities.robot import Robot
 from behaviour_tree.behaviours.basicBehaviours import GetLoc, Move, UpdateNoisettePos, TopBarrier, BottomBarrier, GoToLoc
+
+logger = logging.getLogger(__name__)
 
 class ProcedurePushNoisette(py_trees.decorators.PassThrough):
     def __init__(self, name: str, robot):

@@ -1,8 +1,11 @@
 import py_trees
 import time
+import logging
 from utilities.position import Position
 from behaviour_tree.utilities.robot import AREA_WIDTH, Robot, NutBox
 from behaviour_tree.behaviours.basicBehaviours import GetLoc, GoToLoc, Move, TopBarrier, BottomBarrier, UpdateNoisettePos, GetSide, Start, NutBoxShiftCamera, Push
+
+logger = logging.getLogger(__name__)
 
 class Setup(py_trees.behaviour.Behaviour):
     """setup strategy for the robot"""
@@ -67,7 +70,7 @@ class PushCurrentNutBoxChildren(py_trees.decorators.PassThrough):
         self.main_sequence.remove_all_children()
         nut_box = self.blackboard.nutBox
         if nut_box is None or len(nut_box.children) == 0:
-            self.logger.error("No nut box or no children to push")
+            logger.error("No nut box or no children to push")
             return
         self.main_sequence.add_children(nut_box.children)
 
