@@ -30,7 +30,7 @@ parser.add_argument(
 SIMULATION = parser.parse_args().sim
 
 if SIMULATION:
-    from simulation.simulation import SimRobot
+    from simulation.simulation import SimRobotChasseNeige
     from simulation.communicationSimulation import CommSim as Comm
 else:
     from canBus.CommunicationCan import CommunicationCan as Comm
@@ -51,7 +51,7 @@ if __name__ == "__main__":
     
     if SIMULATION:
         simStartPos = START_POS.getSymmetric(AREA_WIDTH)
-        simRobot = SimRobot(
+        simRobot = SimRobotChasseNeige(
             pos=START_POS,
             speed=250,
         )
@@ -74,7 +74,7 @@ if __name__ == "__main__":
         None,                       #4
         None,                       #5
         None,                       #6
-        None    #7
+        None                        #7
     ]
 
     # distance needed to push noisette from push position to fit all 4 nutboxes in the pantry

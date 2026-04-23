@@ -104,5 +104,5 @@ class GetNextNoisette(GetLoc):
             return None
         res=self.queue.pop(0)
         self.blackboard.nutBox=res
-        return res.getPushpos(buffer=self.robot.HEIGHT//2)
+        return res.getPushpos(buffer=self.robot.HEIGHT//2+self.robot.DISTANCE_CODEUSES)
 

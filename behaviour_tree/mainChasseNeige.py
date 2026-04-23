@@ -30,7 +30,7 @@ parser.add_argument(
 SIMULATION = parser.parse_args().sim
 
 if SIMULATION:
-    from simulation.simulation import SimRobot
+    from simulation.simulation import SimRobotChasseNeige
     from simulation.communicationSimulation import CommSim as Comm
 else:
     from canBus.CommunicationCan import CommunicationCan as Comm
@@ -50,7 +50,7 @@ if __name__ == "__main__":
     
     if SIMULATION:
         simStartPos = START_POS.getSymmetric(AREA_WIDTH)
-        simRobot = SimRobot(
+        simRobot = SimRobotChasseNeige(
         pos=START_POS,
         speed=250,
         )
