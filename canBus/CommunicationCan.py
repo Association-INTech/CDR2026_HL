@@ -4,8 +4,8 @@ import logging
 
 import math
 
-from behaviour_tree.utilities.communication import Comm
-from behaviour_tree.utilities.position import Position
+from utilities.communication import Comm
+from utilities.position import Position
 from lidar.hokuyo.scan_lidar import run
 from gpio_interface.gpio_read import GPIORead
 
@@ -37,9 +37,9 @@ class CommunicationCan(Comm):
             logger.critical("CAN ERROR: Could not init: %s", e)
             raise e
         try:
-            SIDE_SWITCH_PIN = 8
+            SIDE_SWITCH_PIN = 14
             self.gpio_side_switch = GPIORead(SIDE_SWITCH_PIN)
-            TIRETTE_PIN = 23
+            TIRETTE_PIN = 20
             self.gpio_tirette = GPIORead(TIRETTE_PIN)
         except Exception as e:
             logger.critical("GPIO ERROR: Could not init: %s", e)
@@ -67,30 +67,37 @@ class CommunicationCan(Comm):
         if self.bus.reg != reg_asserv:
             self.switchBus("asserv")
         self.bus.send("move", -distance)
+        logger.debug("CAN: Move command sent: %f", -distance)
 
 
     def start_rotate(self, angle: float):
         if self.bus.reg != reg_asserv:
             self.switchBus("asserv")
+        #rotate shortest direction
+        if angle > 180:
+            angle = 180-angle
         angle_rad = angle * math.pi / 180
         self.bus.send("rotate", angle_rad)
-
+        logger.debug("CAN: Rotate command sent: %f rad, %f deg", angle_rad, angle)
     
     def set_position(self, x: float, y: float):
         if self.bus.reg != reg_asserv:
             self.switchBus("asserv")
         self.bus.send("set_pos", x, y)
+        logger.debug("CAN: Set position command sent: %f, %f", x, y)
         
     
     def stop(self):
         if self.bus.reg != reg_asserv:
             self.switchBus("asserv")
         self.bus.send("stop")
+        logger.debug("CAN: Stop command sent")
 
     def checkCamera(self, side ):
         color = "yellow" if side else "blue"
         try:
             gates = gates_setup(color)
+            logger.debug("Camera: Gates detected: %s", gates)
             return gates if gates is not None else [0, 0, 0, 0]
         except Exception as e:
             logger.error("Camera failure: %s", e)
@@ -116,6 +123,7 @@ class CommunicationCan(Comm):
     def get_feedback(self,id=None):
         if self.bus.reg != reg_asserv:
             self.switchBus("asserv")
+        logger.debug("CAN: is ildle?: %s", id)
         return self._safe_request("is_idle",default=False)
 
     
@@ -128,11 +136,13 @@ class CommunicationCan(Comm):
             return None 
         x, y, angle = res
         x,y,angle = res
-        return Position(x, y, angle)
+        pos = Position(x, y, angle)
+        logger.debug("CAN: get position: %s", pos)
+        return pos
     
     def isTierettePulled(self):
         try:
-            return not self.gpio_tirette.read()
+            return not self.gpio_tirette.getPinInput()
         except Exception as e:
             logger.critical("GPIO ERROR: Could not read tirette: %s", e)
             return super().isTierettePulled()  # default
@@ -140,7 +150,7 @@ class CommunicationCan(Comm):
 
     def getSide(self):
         try:
-            return self.gpio_side_switch.read()
+            return self.gpio_side_switch.getPinInput()
         except Exception as e:
             logger.critical("GPIO ERROR: Could not read side switch: %s", e)
             return super().getSide()  # default

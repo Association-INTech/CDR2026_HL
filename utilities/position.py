@@ -22,10 +22,13 @@ class Position:
         return Position(x,y,angle)
 
 
-    def foward(self,dist):
+    def forward(self,dist):
         x = self.x + dist*math.cos(math.radians(self.angle))
         y = self.y +dist*math.sin(math.radians(self.angle))
         return Position(x,y,self.angle)
 
     def distance(self,pos):
         return math.sqrt((pos.x-self.x)**2+(pos.y-self.y)**2)
+
+    def getSymmetric(self,area_width):
+        return Position(area_width - self.x, self.y,  self.angle)

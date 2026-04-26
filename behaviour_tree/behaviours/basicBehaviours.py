@@ -1,7 +1,10 @@
 import py_trees
 import time
-from behaviour_tree.utilities.position import Position
-from behaviour_tree.utilities.robot import NutBox, Robot
+import logging
+from utilities.position import Position
+from behaviour_tree.utilities.robot import AREA_WIDTH, NutBox, Robot
+
+logger = logging.getLogger(__name__)
 
 class GetLoc(py_trees.behaviour.Behaviour):
     """Obtient le prochain endroit"""
@@ -16,10 +19,10 @@ class GetLoc(py_trees.behaviour.Behaviour):
 
     def update(self):
         if len(self.queue)==0:
-            self.logger.error("No more loc in queue")
+            logger.error("No more loc in queue")
             return py_trees.common.Status.FAILURE
         self.blackboard.loc=self.getNextLoc()
-        self.logger.debug(f"Going to {str(self.blackboard.loc)}")
+        logger.debug(f"Going to {str(self.blackboard.loc)}")
         return py_trees.common.Status.SUCCESS
     
     def getNextLoc(self):
@@ -117,7 +120,16 @@ class GoToLoc(py_trees.decorators.PassThrough):
             elif (diff.x==0 and diff.y==0):
                 return (Rotate,diff.angle)
 
-        path=self.robot.graph.getShortestPathPos(currentPos,targetPos)
+        try:
+            path=self.robot.graph.getShortestPathPos(currentPos,targetPos)
+        except Exception as e:
+            logger.error(f"Cannot find path from {currentPos} to {targetPos}: {e}")
+            return
+        
+        if path is None:
+            logger.error(f"No path found from {currentPos} to {targetPos}")
+            return
+
 
         raw_steps = []
         prev_class =  None
@@ -154,8 +166,8 @@ class Rotate(py_trees.behaviour.Behaviour):
         self.id=self.robot.start_rotate(self.angle)
 
     def update(self):
-        if time.time() - self.start_time > 5:
-            self.logger.debug(f"Rotate action timeout: {self.angle}° in {time.time() - self.start_time:.2f}s")
+        if time.time() - self.start_time > self.robot.action_timeout:
+            logger.debug(f"Rotate action timeout: {self.angle}° in {time.time() - self.start_time:.2f}s")
             return py_trees.common.Status.FAILURE
         if self.robot.is_idle() and time.time() - self.start_time > self.robot.idle_time_buffer:
             return py_trees.common.Status.SUCCESS
@@ -175,7 +187,7 @@ class Move(py_trees.behaviour.Behaviour):
 
     def update(self):
         if time.time() - self.start_time > self.robot.action_timeout:
-            self.logger.debug(f"Move action timeout: {self.distance}mm in {time.time() - self.start_time:.2f}s")
+            logger.debug(f"Move action timeout: {self.distance}mm in {time.time() - self.start_time:.2f}s")
             return py_trees.common.Status.FAILURE
         if self.robot.is_idle() and time.time() - self.start_time > self.robot.idle_time_buffer:
             return py_trees.common.Status.SUCCESS
@@ -193,7 +205,7 @@ class TopBarrier(py_trees.behaviour.Behaviour):
 
     def update(self):
         if time.time() - self.start_time > self.robot.action_timeout:
-            self.logger.debug(f"Top Barrier action timeout: {self.state} in {time.time() - self.start_time:.2f}s")
+            logger.debug(f"Top Barrier action timeout: {self.state} in {time.time() - self.start_time:.2f}s")
             return py_trees.common.Status.FAILURE
         if self.robot.is_idle() and time.time() - self.start_time > self.robot.idle_time_buffer:
             return py_trees.common.Status.SUCCESS
@@ -211,7 +223,7 @@ class BottomBarrier(py_trees.behaviour.Behaviour):
 
     def update(self):
         if time.time() - self.start_time > 5:
-            self.logger.debug(f"Bottom Barrier action timeout: {self.state} in {time.time() - self.start_time:.2f}s")
+            logger.debug(f"Bottom Barrier action timeout: {self.state} in {time.time() - self.start_time:.2f}s")
             return py_trees.common.Status.FAILURE
         if self.robot.is_idle() and time.time() - self.start_time > self.robot.idle_time_buffer:
             return py_trees.common.Status.SUCCESS
@@ -262,11 +274,35 @@ class GetSide(py_trees.behaviour.Behaviour):
         self.blackboard.register_key(key="side", access=py_trees.common.Access.WRITE)
 
     def update(self):
-        pos = self.robot.getPos()
+        #pos = self.robot.getPos()
         #self.blackboard.side = (pos.x < 1500)  # True: left/False: right
         side = self.robot.comm.getSide()
         self.blackboard.side = side
-        self.logger.info(f"Determined side: {'Left (Yellow)' if side else 'Right (Blue)'}")
+        logger.info(f"Determined side: {'Left (Yellow)' if side else 'Right (Blue)'}")
+        return py_trees.common.Status.SUCCESS
+
+
+class SetStartPos(py_trees.behaviour.Behaviour):
+
+    def __init__(self, name: str, robot, startPos: Position = None):
+        super().__init__(name)
+        self.robot = robot
+        self.startPos = startPos
+        self.blackboard = self.attach_blackboard_client(name=name)
+        self.blackboard.register_key(key="side", access=py_trees.common.Access.READ)
+        self.blackboard.register_key(key="startPos", access=py_trees.common.Access.WRITE)
+
+    def initialise(self):
+        if self.startPos is None:
+            self.startPos = self.robot.pos
+            logger.warning("SetStartPos: startPos arg is None, using %s", self.startPos)
+            return
+    
+    def update(self):
+        if self.blackboard.side: # left
+            self.blackboard.startPos = self.startPos
+        else: # right
+            self.blackboard.startPos = self.startPos.getSymmetric(AREA_WIDTH)
         return py_trees.common.Status.SUCCESS
 
 
@@ -280,10 +316,10 @@ class CheckTime(py_trees.behaviour.Behaviour):
 
     def update(self):
         elapsed = time.time() - self.robot.start_time
-        self.logger.debug(f"Time: {elapsed:.2f}s elapsed")
+        logger.debug(f"Time: {elapsed:.2f}s elapsed")
         if elapsed < self.end_time:
             return py_trees.common.Status.SUCCESS
-        self.logger.debug(f"Time limit reached: {elapsed:.2f}s elapsed, limit was {self.end_time}s")
+        logger.debug(f"Time limit reached: {elapsed:.2f}s elapsed, limit was {self.end_time}s")
         return py_trees.common.Status.FAILURE
 
 
@@ -366,7 +402,7 @@ class CheckLidar(py_trees.behaviour.Behaviour):
         pos = self.robot.getPos()
         is_obstacle = self.robot.comm.lidar(pos)
         if is_obstacle:
-            self.logger.info("Lidar: Obstacle detected")
+            logger.info("Lidar: Obstacle detected")
             return py_trees.common.Status.FAILURE
         return py_trees.common.Status.SUCCESS
     
@@ -391,13 +427,15 @@ class SetPosOffset(py_trees.behaviour.Behaviour):
     def __init__(self, name: str, robot):
         super().__init__(name)
         self.robot = robot
+        self.blackboard = self.attach_blackboard_client(name=name)
+        self.blackboard.register_key(key="startPos", access=py_trees.common.Access.READ)
 
     def update(self):
         posComm = self.robot.comm.get_position()
-        self.logger.info(f"SetPosOffset: posComm {posComm}, current robot pos {self.robot.pos}")
+        logger.info(f"SetPosOffset: posComm {posComm}, current robot pos {self.blackboard.startPos}")
         if posComm is None:
-            self.logger.warning("SetPosOffset: get_position returned None, offset not updated")
+            logger.warning("SetPosOffset: get_position returned None, offset not updated")
             return py_trees.common.Status.RUNNING
-        self.robot.commPosOffset = self.robot.pos.difference(posComm)
-        self.logger.info(f"SetPosOffset: Updated position offset to {self.robot.commPosOffset}")
+        self.robot.commPosOffset = self.blackboard.startPos.difference(posComm)
+        logger.info(f"SetPosOffset: Updated position offset to {self.robot.commPosOffset}")
         return py_trees.common.Status.SUCCESS

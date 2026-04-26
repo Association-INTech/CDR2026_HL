@@ -9,3 +9,11 @@ class GPIORead:
         
     def getPinInput(self):
         return GPIO.input(self.pin)
+
+if __name__ == "__main__":
+    TIRETTEPIN = 20
+    SIDE_SWITCH_PIN = 14
+    tirette = GPIORead(TIRETTEPIN)
+    side_switch = GPIORead(SIDE_SWITCH_PIN)
+    while True:
+        print(f"Tirette: {tirette.getPinInput()}, Side Switch: {side_switch.getPinInput()}")

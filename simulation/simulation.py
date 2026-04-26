@@ -6,9 +6,9 @@ from pathlib import Path
 
 #Fix relative imports
 if __package__ is None or __package__ == "":
-    sys.path.append(str(Path(__file__).resolve().parent.parent.parent))
+    sys.path.append(str(Path(__file__).resolve().parent.parent))
 
-from behaviour_tree.utilities.position import Position
+from utilities.position import Position
 
 class Rectangle:
     def __init__(self, x, y, width, height, color, angle=0, speed=0):
@@ -46,10 +46,10 @@ class Rectangle:
         surface.blit(rotated_image, rotated_rect.topleft)
 
 class SimRobot():
-    def __init__(self, pos, color=(255, 0, 0), speed=250):
-        self.REF_WIDTH = 310
-        self.REF_HEIGHT = 175
-        
+    REF_WIDTH=310
+    REF_HEIGHT=175
+    
+    def __init__(self, pos, color=(255, 0, 0), speed=250):        
         self.pos = Position(0,0,0)
         self.setCenterPos(pos)
         self.color = color
@@ -110,7 +110,7 @@ class SimRobot():
         dy = coef * self.speed * dt * math.sin(math.radians(self.pos.angle))
         self.pos.x += dx
         self.pos.y += dy
-        self.clamp_to_bounds()
+        #self.clamp_to_bounds()
 
         collide = self.collidelistallNutBoxGroup(groupList)
         
@@ -140,7 +140,7 @@ class SimRobot():
 
         self.pos.x += dx
         self.pos.y += dy
-        self.clamp_to_bounds()
+        #self.clamp_to_bounds()
         self.move_remaining -= abs(step)
 
         print(f"Step: {step}")
@@ -155,15 +155,7 @@ class SimRobot():
             groupList[i].rotate(rotateAngle)
         
         center = self.getCenterPos()
-
-        self.pos.angle = (self.pos.angle + rotateAngle) % 360
-
-        if rotateAngle % 180 != 0:
-            self.width, self.height = self.height, self.width
-
-        self.pos.x = center.x - self.width // 2
-        self.pos.y = center.y - self.height // 2
-        self.clamp_to_bounds()
+        self.setCenterPos(center.add(Position(0, 0, rotateAngle)))
 
     def updateRect(self):
         self.rect = pygame.Rect(self.pos.x, self.pos.y, self.width, self.height)
@@ -183,7 +175,7 @@ class SimRobot():
         return self.rect.collidelistall(rects)
 
 
-class SimRobotMagicoBus(SimRobot):
+class SimRobotMagicoBus(SimRobot):    
     def __init__(self, pos, color=(255, 0, 0), speed=250):
         super().__init__(pos, color, speed)
         self.INS_WIDTH = 170
@@ -245,6 +237,39 @@ class SimRobotMagicoBus(SimRobot):
         if self.isTopDown: collisions += self.topRect.collidelistall(rects)
         return list(set(collisions))
     
+class SimRobotChasseNeige(SimRobot):
+    REF_HEIGHT = 175
+    REF_WIDTH = 310
+
+    def __init__(self, pos, color=(255, 0, 0), speed=250):
+        DISTANCE_CODEUSES=54
+        self.distance_centre_codeuses = self.REF_HEIGHT/2-DISTANCE_CODEUSES
+        super().__init__(pos, color, speed)
+
+    def getCenterPos(self):
+        center = super().getCenterPos()
+        if self.pos.angle == 0:
+            center.x -= self.distance_centre_codeuses
+        elif self.pos.angle == 90:
+            center.y -= self.distance_centre_codeuses
+        elif self.pos.angle == 180:
+            center.x += self.distance_centre_codeuses
+        elif self.pos.angle == 270:
+            center.y += self.distance_centre_codeuses
+        return center
+    
+    def setCenterPos(self, centerPos):
+        center = Position(centerPos.x, centerPos.y, centerPos.angle)
+        if center.angle == 0:
+            center.x += self.distance_centre_codeuses
+        elif center.angle == 90:
+            center.y += self.distance_centre_codeuses
+        elif center.angle == 180:
+            center.x -= self.distance_centre_codeuses
+        elif center.angle == 270:
+            center.y -= self.distance_centre_codeuses
+        super().setCenterPos(center)
+        
 
 class NutBox(Rectangle):
     WIDTH = 150
@@ -465,7 +490,7 @@ class Simulation:
 
 
 if __name__ == "__main__":
-    robot = SimRobot(
+    robot = SimRobotChasseNeige(
         pos=Position(150, 100, 90),
         color=(255, 0, 0),
         speed=250,

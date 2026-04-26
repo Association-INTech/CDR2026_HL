@@ -1,9 +1,9 @@
-from behaviour_tree.utilities.position import Position
+from utilities.position import Position
 import logging
 import py_trees
 import time
 from behaviour_tree.utilities.graph import GridGraph
-from behaviour_tree.utilities.logging_setup import setup_logging
+from utilities.logging_setup import setup_logging
 
 AREA_WIDTH = 3000
 AREA_HEIGHT = 2000
@@ -13,7 +13,7 @@ class Robot:
     "Gère toutes les actions tout relatif au robot"
     WIDTH=310
     HEIGHT=175
-
+    DISTANCE_CODEUSES = 54
     
     def __init__(self, startPos, comm, idle_time_buffer=0.5, action_timeout=5):
         setup_logging()
@@ -89,7 +89,7 @@ class Robot:
 
     def getNutBoxPos(self):
         self.update()
-        return self.pos.foward(Robot.HEIGHT//2) 
+        return self.pos.forward(Robot.HEIGHT//2) 
 
     def getID(self):
         self.__countID+=1
@@ -166,7 +166,7 @@ class RobotChasseNeige(Robot):
 
     def getNutBoxPos(self):
         self.update()
-        return self.pos.foward(Robot.HEIGHT//2)
+        return self.pos.forward(Robot.HEIGHT//2)
 
 class RobotMagicoBus(Robot):
     def __init__(self, pos, comm, idle_time_buffer=0.5, action_timeout=5):
@@ -174,7 +174,7 @@ class RobotMagicoBus(Robot):
         
     def getNutBoxPos(self):
         self.update()
-        contact = self.pos.foward(-Robot.HEIGHT//2) 
+        contact = self.pos.forward(-Robot.HEIGHT//2) 
         if self.pos.angle == 0:
             return Position(contact.x, contact.y - NutBox.HEIGHT//2, 0)
         elif self.pos.angle == 90:
@@ -207,7 +207,7 @@ class NutBox():
     
     def getPushpos(self,buffer=0):
         if self.push_pos is not None:
-            return self.push_pos.foward(-buffer)
+            return self.push_pos.forward(-buffer)
         if self.pos.angle==0:
             return self.pos.add(Position(-buffer,NutBox.WIDTH//2,0))
         else:
