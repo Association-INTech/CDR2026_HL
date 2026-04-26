@@ -3,6 +3,9 @@ import heapq
 import math
 import copy
 import operator
+import logging
+
+logger = logging.getLogger(__name__)
 
 class Graph:
     def __init__(self,size):
@@ -152,6 +155,10 @@ class GridGraph(Graph):
         rot=round((pos.angle%360)*self.NbRotations/360)
         x = int(pos.x // self.scale)
         y = int(pos.y // self.scale)
+        if pos.x // self.scale != x or pos.y // self.scale != y or rot * 360 / self.NbRotations != pos.angle % 360:
+            raise logger.debug(f"GRAPH: Position {pos}  approximated to: x {x*self.scale}, y {y*self.scale}, angle {rot*360/self.NbRotations}")
+        if pos.x<0 or pos.x>=self.realWidth or pos.y<0 or pos.y>=self.realHeight:
+            raise ValueError(f"Position out of bounds: {pos}, area: {self.realWidth}x{self.realHeight}")
         return self.getNodeID(x, y, rot)
     
     def getPos(self,id):
