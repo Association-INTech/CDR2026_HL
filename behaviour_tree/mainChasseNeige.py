@@ -14,7 +14,7 @@ setup_logging()
 
 import py_trees
 from behaviour_tree.utilities.robot import RobotChasseNeige, AREA_WIDTH
-from behaviour_tree.behaviours.strategieChasseNeige import ProcedureNoisette, setup
+from behaviour_tree.behaviours.strategieChasseNeige import ProcedureNoisette, Setup
 from behaviour_tree.behaviours.basicBehaviours import Start, GetSide, CheckTime, SetLoc, GoToLoc, CheckLidar, Stop, SetPosOffset, SetStartPos
 from utilities.position import Position
 
@@ -30,27 +30,28 @@ parser.add_argument(
 SIMULATION = parser.parse_args().sim
 
 if SIMULATION:
-    from simulation.simulation import SimRobot
+    from simulation.simulation import SimRobotChasseNeige
     from simulation.communicationSimulation import CommSim as Comm
 else:
     from canBus.CommunicationCan import CommunicationCan as Comm
 
 if __name__ == "__main__":
-    DISTANCE_CODEUSES = 54
-    startPos = Position(420, DISTANCE_CODEUSES, 90)
+    START_POS = Position(420, RobotChasseNeige.DISTANCE_CODEUSES, 90)
     ORDER=[2,3,0] #for left side
     TIMEGOBACK= 80 # seconds until robot should start going back to start position
     USELIDAR = True
     USECAMERA = True
-    
+    ILDE_TIME_BUFFER = 2 # seconds minimum to wait after each action before starting the next one
+    ACTION_TIMEOUT = 10 # seconds to wait before considering an action failed 
+     
     logger = logging.getLogger(__name__)
     logger.info("===== Main Program Started =====")
-    logger.info(f"Start position: {startPos}, Order: {ORDER}, Go-back time limit: {TIMEGOBACK}s")
+    logger.info(f"Start position: {START_POS}, Order: {ORDER}, Go-back time limit: {TIMEGOBACK}s")
     
     if SIMULATION:
-        simStartPos = Position(AREA_WIDTH - startPos.x, startPos.y,  startPos.angle)
-        simRobot = SimRobot(
-        pos=startPos,
+        simStartPos = START_POS.getSymmetric(AREA_WIDTH)
+        simRobot = SimRobotChasseNeige(
+        pos=START_POS,
         speed=250,
         )
         comm = Comm(simRobot)
@@ -58,21 +59,50 @@ if __name__ == "__main__":
         comm = Comm()
     
     robot = RobotChasseNeige(
-        pos=startPos, 
+        pos=START_POS, 
         comm=comm,
-        idle_time_buffer=2,
-        action_timeout=10
+        idle_time_buffer=ILDE_TIME_BUFFER,
+        action_timeout=ACTION_TIMEOUT
     )
+    #Position of front of robot (Not centered around codeuses) when pushing noisette, where camera is checked 
+    PUSH_POSITIONS = [
+        Position(275, 900, 270),    #0
+        Position(275, 1700, 270),   #1
+        None,                       #2
+        Position(1000, 1725, 0),    #3
+        None,                       #4
+        None,                       #5
+        None,                       #6
+        None                        #7
+    ]
 
+    # distance needed to push noisette from push position to fit all 4 nutboxes in the pantry
+    PUSH_DISTANCES = [
+        700,   #0
+        400,   #1
+        360,   #2
+        410,   #3
+        200,   #4
+        200,   #5
+        200,   #6
+        200    #7
+    ]
+    
+    GO_BACK_POS = Position(150, 100, 90)
+
+    # Create the behavior tree
     root = py_trees.composites.Sequence("MainSequence", memory=True)
+    
+    #--- Startup  ---
     root.add_child(Start(name="wait_start_signal", robot=robot))
     root.add_child(GetSide(name="get_side", robot=robot))
-    root.add_child(SetStartPos(name="set_start_pos", robot=robot, startPos=startPos))
+    root.add_child(SetStartPos(name="set_start_pos", robot=robot, startPos=START_POS))
     root.add_child(SetPosOffset(name="set_pos_offset", robot=robot))
-    root.add_child(setup(name="setup", order=ORDER, robot=robot))
+    root.add_child(Setup(name="setup", order=ORDER, PUSH_POSITIONS=PUSH_POSITIONS, PUSH_DISTANCES=PUSH_DISTANCES, USECAMERA=USECAMERA, robot=robot))
 
     sequence_strategie = py_trees.composites.Sequence("sequence_strategie", memory=True)
     
+    #--- Lidar ---
     fallback_lidar = py_trees.composites.Selector("lidar_fallback", memory=True)
     fallback_lidar.add_child(CheckLidar(name="check_time_for_lidar", robot=robot))
     fallback_lidar.add_child(Stop(name="stop_for_lidar", robot=robot))
@@ -80,6 +110,7 @@ if __name__ == "__main__":
     if USELIDAR:
         sequence_strategie.add_child(fallback_lidar)
     
+    #--- Main Strategy ---
     procedure_limited_time = py_trees.composites.Sequence("procedure_limited_time", memory=True)
     procedure_limited_time.add_child(CheckTime(name="check_time_under_limit", robot=robot, end_time=TIMEGOBACK))
     procedure_limited_time.add_child(ProcedureNoisette(name="procedure_noisette", robot=robot))
@@ -89,9 +120,10 @@ if __name__ == "__main__":
         child=procedure_limited_time,
         num_success=len(ORDER),
     )
-
+    
+    #--- Go Back if Time is Up ---
     sequence_go_back = py_trees.composites.Sequence("sequence_go_back", memory=True)
-    sequence_go_back.add_child(SetLoc(name="SetLoc_go_back", robot=robot, loc=Position(150, 100, 90)))
+    sequence_go_back.add_child(SetLoc(name="SetLoc_go_back", robot=robot, loc=GO_BACK_POS))
     sequence_go_back.add_child(GoToLoc(name="GoToLoc_go_back", robot=robot))
 
     fallback = py_trees.composites.Selector("fallback_time", memory=True)
@@ -103,5 +135,5 @@ if __name__ == "__main__":
     root.add_child(sequence_strategie)
     
     
-
+    #--- Start the behavior tree ---
     robot.startBT(root, robot)

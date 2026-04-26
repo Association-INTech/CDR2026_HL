@@ -1,45 +1,46 @@
 import py_trees
 import time
+import logging
 from utilities.position import Position
-from behaviour_tree.utilities.robot import Robot, NutBox
+from behaviour_tree.utilities.robot import AREA_WIDTH, Robot, NutBox
 from behaviour_tree.behaviours.basicBehaviours import GetLoc, GoToLoc, Move, TopBarrier, BottomBarrier, UpdateNoisettePos, GetSide, Start, NutBoxShiftCamera, Push
 
-class setup(py_trees.behaviour.Behaviour):
+logger = logging.getLogger(__name__)
+
+class Setup(py_trees.behaviour.Behaviour):
     """setup strategy for the robot"""
-    def __init__(self, name: str, order: list, robot):
+    def __init__(self, name: str, order: list, PUSH_POSITIONS: list, PUSH_DISTANCES: list, USECAMERA: bool, robot):
         super().__init__(name)
         self.robot = robot
         self.blackboard = self.attach_blackboard_client(name=name)
         self.blackboard.register_key(key="nutBoxOrder", access=py_trees.common.Access.WRITE)
         self.blackboard.register_key(key="side", access=py_trees.common.Access.WRITE)
         self.order=order
+        self.PUSH_DISTANCES=PUSH_DISTANCES
+        self.PUSH_POSITIONS=PUSH_POSITIONS
+        self.USECAMERA=USECAMERA
 
-            
     def update(self):
-        self.robot.noisettes[0].push_pos=self.robot.noisettes[0].getPushpos().add(Position(100,NutBox.HEIGHT*NutBox.BOX_COUNT+self.robot.HEIGHT//2,180))
-        self.robot.noisettes[1].push_pos=self.robot.noisettes[1].getPushpos().add(Position(100,NutBox.HEIGHT*NutBox.BOX_COUNT+self.robot.HEIGHT//2,180))
-        self.robot.noisettes[3].push_pos=self.robot.noisettes[3].getPushpos().add(Position(0,-100,0))
-        
-        pushDistances = [
-            700,   #0
-            400,   #1
-            360,   #2
-            410,   #3
-            200,   #4
-            200,   #5
-            200,   #6
-            200    #7
-        ]
                 
         if self.blackboard.side: # left
             self.blackboard.nutBoxOrder=self.order
             for i in range(len(self.robot.noisettes)):
-                self.robot.noisettes[i].children = [ProcedurePushNoisette(name=f"push_noisette_{i}", pushDistance=pushDistances[i], robot=self.robot)]
+                if self.PUSH_POSITIONS[i] is not None:
+                    self.robot.noisettes[i].push_pos=self.PUSH_POSITIONS[i].forward(self.robot.HEIGHT-self.robot.DISTANCE_CODEUSES)
+                if self.USECAMERA:  
+                    self.robot.noisettes[i].children = [ProcedurePushNoisette(name=f"push_noisette_{i}", pushDistance=self.PUSH_DISTANCES[i], robot=self.robot)]
+                else:
+                    self.robot.noisettes[i].children = [Move(name=f"push_noisette_{i}", value=self.PUSH_DISTANCES[i], robot=self.robot)]
 
         else: #right
             self.blackboard.nutBoxOrder=[7-i for i in self.order]
             for i in range(len(self.robot.noisettes)):
-                self.robot.noisettes[i].children = [ProcedurePushNoisette(name=f"push_noisette_{i}", pushDistance=pushDistances[7-i], robot=self.robot)]
+                if self.PUSH_POSITIONS[7-i] is not None:
+                    self.robot.noisettes[i].push_pos=self.PUSH_POSITIONS[7-i].forward(self.robot.HEIGHT-self.robot.DISTANCE_CODEUSES).getSymmetric(AREA_WIDTH)
+                if self.USECAMERA:
+                    self.robot.noisettes[i].children = [ProcedurePushNoisette(name=f"push_noisette_{i}", pushDistance=self.PUSH_DISTANCES[7-i], robot=self.robot)]
+                else:
+                    self.robot.noisettes[i].children = [Move(name=f"push_noisette_{i}", value=self.PUSH_DISTANCES[7-i], robot=self.robot)]
 
         
         return py_trees.common.Status.SUCCESS
@@ -69,7 +70,7 @@ class PushCurrentNutBoxChildren(py_trees.decorators.PassThrough):
         self.main_sequence.remove_all_children()
         nut_box = self.blackboard.nutBox
         if nut_box is None or len(nut_box.children) == 0:
-            self.logger.error("No nut box or no children to push")
+            logger.error("No nut box or no children to push")
             return
         self.main_sequence.add_children(nut_box.children)
 
@@ -103,5 +104,5 @@ class GetNextNoisette(GetLoc):
             return None
         res=self.queue.pop(0)
         self.blackboard.nutBox=res
-        return res.getPushpos(buffer=self.robot.HEIGHT//2)
+        return res.getPushpos(buffer=self.robot.HEIGHT//2+self.robot.DISTANCE_CODEUSES)
 
