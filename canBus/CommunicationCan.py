@@ -105,7 +105,7 @@ class CommunicationCan(Comm):
         
     def lidar(self, pos):
         try:
-            x0,y0,theta = pos
+            x0,y0,theta = pos.x, pos.y, pos.angle
             is_valid, dist, angle = run(x0,y0,theta)
             THRESHOLD = 400  #TODO test to determine threshold (idk if this is correct)
             logger.debug("LIDAR: is_valid: %s, dist: %smm, angle: %s°", is_valid, dist, angle)
