@@ -100,7 +100,7 @@ if __name__ == "__main__":
     root.add_child(SetPosOffset(name="set_pos_offset", robot=robot))
     root.add_child(Setup(name="setup", order=ORDER, PUSH_POSITIONS=PUSH_POSITIONS, PUSH_DISTANCES=PUSH_DISTANCES, USECAMERA=USECAMERA, robot=robot))
 
-    sequence_strategie = py_trees.composites.Sequence("sequence_strategie", memory=True)
+    sequence_strategie = py_trees.composites.Sequence("sequence_strategie", memory=False)
     
     #--- Lidar ---
     fallback_lidar = py_trees.composites.Selector("lidar_fallback", memory=True)
