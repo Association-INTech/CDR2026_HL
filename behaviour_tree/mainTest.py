@@ -16,8 +16,6 @@ import py_trees
 from behaviour_tree.utilities.robot import RobotChasseNeige, AREA_WIDTH
 from behaviour_tree.behaviours.strategieChasseNeige import PushCurrentNutBoxChildren, Setup, GetNextNoisette
 from behaviour_tree.behaviours.basicBehaviours import CheckLidar, Rotate, Start, GetSide, Move, SetPosOffset, SetStartPos, Stop
-from utilities.position import Position
-
 import argparse
 
 parser = argparse.ArgumentParser(description="Run robot controller in Sim or Hardware mode.")
