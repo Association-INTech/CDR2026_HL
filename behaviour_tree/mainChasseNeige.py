@@ -39,9 +39,9 @@ if __name__ == "__main__":
     START_POS = Position(420, RobotChasseNeige.DISTANCE_CODEUSES, 90)
     ORDER=[2,3,0] #for left side
     TIMEGOBACK= 80 # seconds until robot should start going back to start position
-    USELIDAR = True
-    USECAMERA = True
-    ILDE_TIME_BUFFER = 2 # seconds minimum to wait after each action before starting the next one
+    USELIDAR = False
+    USECAMERA = False
+    ILDE_TIME_BUFFER = 1 # seconds minimum to wait after each action before starting the next one
     ACTION_TIMEOUT = 10 # seconds to wait before considering an action failed 
      
     logger = logging.getLogger(__name__)
@@ -104,7 +104,7 @@ if __name__ == "__main__":
     
     #--- Lidar ---
     fallback_lidar = py_trees.composites.Selector("lidar_fallback", memory=True)
-    fallback_lidar.add_child(CheckLidar(name="check_time_for_lidar", robot=robot))
+    fallback_lidar.add_child(CheckLidar(name="check_lidar", robot=robot))
     fallback_lidar.add_child(Stop(name="stop_for_lidar", robot=robot))
     
     if USELIDAR:

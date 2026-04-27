@@ -152,82 +152,64 @@ class GoToLoc(py_trees.decorators.PassThrough):
         self.blackboard.plan = steps
         self.main_sequence.add_children(stepsBT)      
 
+class Action(py_trees.behaviour.Behaviour):
+    """Generic action"""
+    def __init__(self, name: str, robot):
+        super().__init__(name)
+        self.robot = robot
+        
+    def initialise(self):
+        self.start_time=time.time()
 
-class Rotate(py_trees.behaviour.Behaviour):
+    def update(self):
+        if time.time() - self.start_time > self.robot.action_timeout:
+            logger.debug(f"{self.__class__.__name__} action timeout in {time.time() - self.start_time:.2f}s")
+            return py_trees.common.Status.FAILURE
+        if self.robot.is_idle() and time.time() - self.start_time > self.robot.idle_time_buffer:
+            return py_trees.common.Status.SUCCESS
+        return py_trees.common.Status.RUNNING
+    
+class Rotate(Action):
     """Rotate robot by a given angle"""
 
     def __init__(self, name: str, robot, value: float) -> None:
-        super().__init__(name)
-        self.robot = robot
+        super().__init__(name,robot=robot)
         self.angle = value
 
     def initialise(self):
-        self.start_time=time.time()
+        super().initialise()
         self.id=self.robot.start_rotate(self.angle)
-
-    def update(self):
-        if time.time() - self.start_time > self.robot.action_timeout:
-            logger.debug(f"Rotate action timeout: {self.angle}° in {time.time() - self.start_time:.2f}s")
-            return py_trees.common.Status.FAILURE
-        if self.robot.is_idle() and time.time() - self.start_time > self.robot.idle_time_buffer:
-            return py_trees.common.Status.SUCCESS
-        return py_trees.common.Status.RUNNING        
                
-class Move(py_trees.behaviour.Behaviour):
+class Move(Action):
     """Move robot forward by a given distance"""
 
     def __init__(self, name: str, robot, value: float) -> None:
-        super().__init__(name)
-        self.robot = robot
+        super().__init__(name,robot=robot)
         self.distance = value
 
     def initialise(self):
-        self.start_time=time.time()
+        super().initialise()
         self.id=self.robot.start_move(self.distance)
 
-    def update(self):
-        if time.time() - self.start_time > self.robot.action_timeout:
-            logger.debug(f"Move action timeout: {self.distance}mm in {time.time() - self.start_time:.2f}s")
-            return py_trees.common.Status.FAILURE
-        if self.robot.is_idle() and time.time() - self.start_time > self.robot.idle_time_buffer:
-            return py_trees.common.Status.SUCCESS
-        return py_trees.common.Status.RUNNING        
 
-class TopBarrier(py_trees.behaviour.Behaviour):
+class TopBarrier(Action):
     def __init__(self, name: str, robot, state: bool) -> None:
-        super().__init__(name)
-        self.robot = robot
+        super().__init__(name,robot=robot)
         self.state = state
 
     def initialise(self):
-        self.start_time=time.time()
+        super().initialise()
         self.id=self.robot.top_barrier(self.state)
 
-    def update(self):
-        if time.time() - self.start_time > self.robot.action_timeout:
-            logger.debug(f"Top Barrier action timeout: {self.state} in {time.time() - self.start_time:.2f}s")
-            return py_trees.common.Status.FAILURE
-        if self.robot.is_idle() and time.time() - self.start_time > self.robot.idle_time_buffer:
-            return py_trees.common.Status.SUCCESS
-        return py_trees.common.Status.RUNNING        
 
-class BottomBarrier(py_trees.behaviour.Behaviour):
+class BottomBarrier(Action):
     def __init__(self, name: str, robot, state: bool) -> None:
-        super().__init__(name)
-        self.robot = robot
+        super().__init__(name,robot=robot)
         self.state = state
 
     def initialise(self):
-        self.start_time=time.time()
+        super().initialise()
         self.id=self.robot.bottom_barrier(self.state)
-
-    def update(self):
-        if time.time() - self.start_time > 5:
-            logger.debug(f"Bottom Barrier action timeout: {self.state} in {time.time() - self.start_time:.2f}s")
-            return py_trees.common.Status.FAILURE
-        if self.robot.is_idle() and time.time() - self.start_time > self.robot.idle_time_buffer:
-            return py_trees.common.Status.SUCCESS
-        return py_trees.common.Status.RUNNING        
 
 class UpdateNoisettePos(py_trees.behaviour.Behaviour):
     """Updates the NutBox position after being pushed"""
@@ -398,10 +380,14 @@ class CheckLidar(py_trees.behaviour.Behaviour):
     def __init__(self, name: str, robot):
         super().__init__(name)
         self.robot = robot
+        self.blackboard = self.attach_blackboard_client(name=name)
+        self.blackboard.register_key(key="was_stopped", access=py_trees.common.Access.WRITE)
+        
     def update(self):
         pos = self.robot.getPos()
         is_obstacle = self.robot.comm.lidar(pos)
         if is_obstacle:
+            self.blackboard.was_stopped = True
             logger.info("Lidar: Obstacle detected")
             return py_trees.common.Status.FAILURE
         return py_trees.common.Status.SUCCESS
