@@ -166,6 +166,8 @@ class Action(py_trees.behaviour.Behaviour):
             logger.debug(f"{self.__class__.__name__} action timeout in {time.time() - self.start_time:.2f}s")
             return py_trees.common.Status.FAILURE
         if self.robot.is_idle() and time.time() - self.start_time > self.robot.idle_time_buffer:
+            logger.debug(f"{self.__class__.__name__} finished action")
+            time.sleep(2)
             return py_trees.common.Status.SUCCESS
         return py_trees.common.Status.RUNNING
     

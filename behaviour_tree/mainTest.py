@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+from math import dist
 import sys
 from pathlib import Path
 
@@ -39,8 +40,8 @@ if __name__ == "__main__":
     START_POS = Position(420, RobotChasseNeige.DISTANCE_CODEUSES, 90)
     ORDER = [0] #for left side
     TIMEGOBACK = 80 # seconds until robot should start going back to start position
-    USELIDAR = True
-    USECAMERA = True
+    USELIDAR = False
+    USECAMERA = False
     ILDE_TIME_BUFFER = 2 # seconds minimum to wait after each action before starting the next one
     ACTION_TIMEOUT = 10 # seconds to wait before considering an action failed 
     
@@ -118,9 +119,27 @@ if __name__ == "__main__":
     sequence_strategie.add_child(PushCurrentNutBoxChildren(name="Push", robot=robot))
     sequence_strategie.add_child(Move(name="goBack", value=-700, robot=robot))    
     """
-    sequence_main.add_child(Move(name="Move1", value=500, robot=robot))
-    sequence_main.add_child(Rotate(name="Rotate1", value=180, robot=robot))
-    sequence_main.add_child(Move(name="Move2", value=500, robot=robot))
+    sequence_main.add_child(Move(name="Move1", value=770, robot=robot))
+    sequence_main.add_child(Move(name="Move1", value=-250, robot=robot))
+    sequence_main.add_child(Rotate(name="Rotate", value=270, robot=robot))
+    sequence_main.add_child(Move(name="Move3", value=1500, robot=robot))
+    sequence_main.add_child(Rotate(name="Rotate", value=90, robot=robot))
+    sequence_main.add_child(Move(name="Move3", value=350, robot=robot))
+    sequence_main.add_child(Rotate(name="Rotate", value=90, robot=robot))
+    sequence_main.add_child(Move(name="Move3", value=610, robot = robot))
+    sequence_main.add_child(Move(name="Move3", value=-610, robot=robot))
+    sequence_main.add_child(Rotate(name="Rotate", value=270, robot=robot))
+    sequence_main.add_child(Move(name="Move3", value=630, robot=robot))
+    sequence_main.add_child(Rotate(name="Rotate", value=90, robot=robot))
+    sequence_main.add_child(Move(name="Move3", value=430, robot = robot))
+    sequence_main.add_child(Move(name="Move3", value=-430, robot = robot))
+    sequence_main.add_child(Rotate(name="Rotate", value=90, robot=robot))
+    sequence_main.add_child(Move(name="Move3", value=350+630, robot = robot))
+    sequence_main.add_child(Rotate(name="Rotate", value=270, robot=robot))
+    sequence_main.add_child(Move(name="Move3", value=1500, robot=robot))
+    sequence_main.add_child(Rotate(name="Rotate", value=90, robot=robot))
+    sequence_main.add_child(Move(name="Move3", value=520, robot = robot))
+
     
     sequence_strategie.add_child(sequence_main)
     

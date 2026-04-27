@@ -73,6 +73,7 @@ class CommunicationCan(Comm):
     def start_rotate(self, angle: float):
         if self.bus.reg != reg_asserv:
             self.switchBus("asserv")
+        #angle=angle+45
         #rotate shortest direction
         if angle > 180:
             angle = 180-angle
