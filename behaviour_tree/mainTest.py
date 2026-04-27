@@ -15,7 +15,7 @@ setup_logging()
 import py_trees
 from behaviour_tree.utilities.robot import RobotChasseNeige, AREA_WIDTH
 from behaviour_tree.behaviours.strategieChasseNeige import PushCurrentNutBoxChildren, Setup, GetNextNoisette
-from behaviour_tree.behaviours.basicBehaviours import Start, GetSide, Move, SetPosOffset, SetStartPos
+from behaviour_tree.behaviours.basicBehaviours import CheckLidar, Rotate, Start, GetSide, Move, SetPosOffset, SetStartPos, Stop
 from utilities.position import Position
 
 import argparse
@@ -102,13 +102,29 @@ if __name__ == "__main__":
     root.add_child(Setup(name="setup", order=ORDER, PUSH_POSITIONS=PUSH_POSITIONS, PUSH_DISTANCES=PUSH_DISTANCES, USECAMERA=USECAMERA, robot=robot))
 
     #--- Main Strategy ---
-    sequence_strategie = py_trees.composites.Sequence("sequence_strategie", memory=True)
+    sequence_strategie = py_trees.composites.Sequence("sequence_strategie", memory=False)
+    fallback_lidar = py_trees.composites.Selector("lidar_fallback", memory=True)
     
+    fallback_lidar.add_child(CheckLidar(name="check_time_for_lidar", robot=robot))
+    fallback_lidar.add_child(Stop(name="stop_for_lidar", robot=robot))
+    
+    if USELIDAR:
+        sequence_strategie.add_child(fallback_lidar)
+
+    sequence_main = py_trees.composites.Sequence("sequence_main", memory=True)
+
+    """
     sequence_strategie.add_child(Move(name="Move1", value=260 + RobotChasseNeige.HEIGHT - DISTANCE_CODEUSES, robot=robot))
     sequence_strategie.add_child(GetNextNoisette(name="Push", robot=robot))
     sequence_strategie.add_child(PushCurrentNutBoxChildren(name="Push", robot=robot))
     sequence_strategie.add_child(Move(name="goBack", value=-700, robot=robot))    
-
+    """
+    sequence_main.add_child(Move(name="Move1", value=500, robot=robot))
+    sequence_main.add_child(Rotate(name="Rotate1", value=180, robot=robot))
+    sequence_main.add_child(Move(name="Move2", value=500, robot=robot))
+    
+    sequence_strategie.add_child(sequence_main)
+    
     root.add_child(sequence_strategie)
 
     #--- Start the behavior tree ---

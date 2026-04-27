@@ -77,7 +77,7 @@ class CommunicationCan(Comm):
         if angle > 180:
             angle = 180-angle
         angle_rad = angle * math.pi / 180
-        self.bus.send("rotate", angle_rad)
+        self.bus.send("rotate", -angle_rad)
         logger.debug("CAN: Rotate command sent: %f rad, %f deg", angle_rad, angle)
     
     def set_position(self, x: float, y: float):
@@ -107,8 +107,9 @@ class CommunicationCan(Comm):
         try:
             x0,y0,theta = pos
             is_valid, dist, angle = run(x0,y0,theta)
-            THRESHOLD = 100  #TODO test to determine threshold (idk if this is correct)
+            THRESHOLD = 400  #TODO test to determine threshold (idk if this is correct)
             
+            #if is_valid and dist < THRESHOLD:
             if is_valid and dist < THRESHOLD:
                 logger.info("LIDAR: Obstacle detected, dist: %smm, threshold: %smm", dist, THRESHOLD)
                 return True 

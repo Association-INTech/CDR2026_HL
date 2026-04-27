@@ -10,7 +10,7 @@ def setup_logging(log_filename: str = "py_trees.log") -> Path:
     """Configure application logging to write both to console and to a file."""
     global _LOGGING_CONFIGURED
 
-    log_dir = Path(__file__).resolve().parents[2] / "logs"
+    log_dir = Path(__file__).resolve().parents[1] / "logs"
     log_dir.mkdir(parents=True, exist_ok=True)
 
     if _LOGGING_CONFIGURED:
@@ -24,6 +24,7 @@ def setup_logging(log_filename: str = "py_trees.log") -> Path:
             logging.FileHandler(log_file),
             logging.StreamHandler(),
         ],
+        force=True,
     )
     _LOGGING_CONFIGURED = True
     return log_dir
