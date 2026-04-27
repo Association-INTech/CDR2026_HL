@@ -14,6 +14,7 @@ setup_logging()
 
 import py_trees
 from behaviour_tree.utilities.robot import RobotChasseNeige, AREA_WIDTH
+from utilities.position import Position
 from behaviour_tree.behaviours.strategieChasseNeige import PushCurrentNutBoxChildren, Setup, GetNextNoisette
 from behaviour_tree.behaviours.basicBehaviours import CheckLidar, Rotate, Start, GetSide, Move, SetPosOffset, SetStartPos, Stop
 import argparse
