@@ -108,12 +108,12 @@ class CommunicationCan(Comm):
             x0,y0,theta = pos
             is_valid, dist, angle = run(x0,y0,theta)
             THRESHOLD = 400  #TODO test to determine threshold (idk if this is correct)
-            
+            logger.debug("LIDAR: is_valid: %s, dist: %smm, angle: %s°", is_valid, dist, angle)
             #if is_valid and dist < THRESHOLD:
-            if is_valid and dist < THRESHOLD:
+            if dist < THRESHOLD:
                 logger.info("LIDAR: Obstacle detected, dist: %smm, threshold: %smm", dist, THRESHOLD)
                 return True 
-            return False    
+            return False        
             
         except Exception as e:
                 logger.error("LIDAR failure: %s", e)
