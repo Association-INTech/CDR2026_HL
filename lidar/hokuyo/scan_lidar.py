@@ -8,7 +8,7 @@ import numpy as np
 
 distance_max = 20000  
 distance_min = 20  # En fonction du robot
-angle_limit = 125
+angle_limit = 135
 angle = angle_limit * np.pi / 180
 distance_limite = 100
 waiting_time = 3 # secondes
