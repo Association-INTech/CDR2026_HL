@@ -47,7 +47,7 @@ if __name__ == "__main__":
     START_POS = Position(420, RobotChasseNeige.DISTANCE_CODEUSES, 90)
     ORDER = [2, 3, 0]  # for left side
     TIMEGOBACK = 80  # seconds until robot should start going back to start position
-    USELIDAR = False
+    USELIDAR = True
     USECAMERA = False
     ILDE_TIME_BUFFER = (
         1  # seconds minimum to wait after each action before starting the next one
