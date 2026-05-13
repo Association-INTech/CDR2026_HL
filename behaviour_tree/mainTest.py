@@ -16,7 +16,7 @@ setup_logging()
 import py_trees
 from behaviour_tree.utilities.robot import RobotChasseNeige, AREA_WIDTH
 from utilities.position import Position
-from behaviour_tree.behaviours.strategieChasseNeige import PushCurrentNutBoxChildren, Setup, GetNextNoisette
+from behaviour_tree.behaviours.strategieChasseNeige import PushCurrentNutBoxChildren, Setup, GetNextNoisette, ProcedureHardCoded
 from behaviour_tree.behaviours.basicBehaviours import CheckLidar, Rotate, Start, GetSide, Move, SetPosOffset, SetStartPos, Stop
 import argparse
 
@@ -37,10 +37,10 @@ else:
 
 if __name__ == "__main__":
     DISTANCE_CODEUSES = 54
-    START_POS = Position(420, RobotChasseNeige.DISTANCE_CODEUSES, 90)
+    START_POS = Position(320, RobotChasseNeige.DISTANCE_CODEUSES, 90)
     ORDER = [0] #for left side
     TIMEGOBACK = 80 # seconds until robot should start going back to start position
-    USELIDAR = False
+    USELIDAR = True
     USECAMERA = False
     ILDE_TIME_BUFFER = 2 # seconds minimum to wait after each action before starting the next one
     ACTION_TIMEOUT = 10 # seconds to wait before considering an action failed 
@@ -63,7 +63,8 @@ if __name__ == "__main__":
         pos=START_POS, 
         comm=comm,
         idle_time_buffer=ILDE_TIME_BUFFER,
-        action_timeout=ACTION_TIMEOUT
+        action_timeout=ACTION_TIMEOUT,
+        USE_GRAPH=False
     )
     #Position of front of robot (Not centered around codeuses) when pushing noisette, where camera is checked 
     PUSH_POSITIONS = [
@@ -119,6 +120,7 @@ if __name__ == "__main__":
     sequence_strategie.add_child(PushCurrentNutBoxChildren(name="Push", robot=robot))
     sequence_strategie.add_child(Move(name="goBack", value=-700, robot=robot))    
     """
+    """
     sequence_main.add_child(Move(name="Move1", value=770, robot=robot))
     sequence_main.add_child(Move(name="Move1", value=-250, robot=robot))
     sequence_main.add_child(Rotate(name="Rotate", value=270, robot=robot))
@@ -139,7 +141,14 @@ if __name__ == "__main__":
     sequence_main.add_child(Move(name="Move3", value=1500, robot=robot))
     sequence_main.add_child(Rotate(name="Rotate", value=90, robot=robot))
     sequence_main.add_child(Move(name="Move3", value=520, robot = robot))
-
+    """
+    stat= [
+        "move 1000",
+        "rotate 180",
+        "move 1000"
+    ]
+    sequence_main.add_child(ProcedureHardCoded(name="ProcedureHardCoded", strategy=stat, robot=robot))
+    
     
     sequence_strategie.add_child(sequence_main)
     

@@ -3,7 +3,7 @@ import time
 import logging
 from utilities.position import Position
 from behaviour_tree.utilities.robot import AREA_WIDTH, Robot, NutBox
-from behaviour_tree.behaviours.basicBehaviours import GetLoc, GoToLoc, Move, TopBarrier, BottomBarrier, UpdateNoisettePos, GetSide, Start, NutBoxShiftCamera, Push
+from behaviour_tree.behaviours.basicBehaviours import GetLoc, GoToLoc, Move, Rotate, TopBarrier, BottomBarrier, UpdateNoisettePos, GetSide, Start, NutBoxShiftCamera, Push
 
 logger = logging.getLogger(__name__)
 
@@ -44,6 +44,34 @@ class Setup(py_trees.behaviour.Behaviour):
 
         
         return py_trees.common.Status.SUCCESS
+
+class ProcedureHardCoded(py_trees.decorators.PassThrough):
+    def __init__(self, name: str, strategy: list, robot):
+        self.hardCodedSequence = py_trees.composites.Sequence(name+"PushSequence", True)
+        super().__init__(name,self.hardCodedSequence)
+        
+        self.blackboard = self.attach_blackboard_client(name=name)
+        self.blackboard.register_key(key="side", access=py_trees.common.Access.WRITE)
+
+        hardCodedBehaviours =[]
+        for step in strategy:
+            action,value_init=step.split()                
+            match action:
+                case "move" | "d":
+                    value=int(value_init)
+                    hardCodedBehaviours.append(Move(name=f"move_{value}", value=value, robot=robot))
+                case "rotate" | "r":
+                    if self.blackboard.side: #left
+                        value=int(value_init)
+                    else: #right
+                        value=-int(value_init)%360
+
+                    hardCodedBehaviours.append(Rotate(name=f"rotate_{value}"), value=value)
+                case _:
+                    logger.error("action not reconized")
+        self.hardCodedSequence.add_children(hardCodedBehaviours)
+                
+                  
 
 class ProcedurePushNoisette(py_trees.decorators.PassThrough):
     def __init__(self, name: str, pushDistance: int, robot):

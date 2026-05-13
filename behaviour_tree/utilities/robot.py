@@ -15,7 +15,7 @@ class Robot:
     HEIGHT=175
     DISTANCE_CODEUSES = 54
     
-    def __init__(self, startPos, comm, idle_time_buffer=0.5, action_timeout=5):
+    def __init__(self, startPos, comm, idle_time_buffer=0.5, action_timeout=5, USE_GRAPH=True):
         setup_logging()
         self.pos=startPos
         self.commPosOffset=Position(0,0,0)
@@ -26,9 +26,10 @@ class Robot:
         self.__countID=0 #variable de classe pour avoir un id
         self.start_time = time.time()
         self.logger = logging.getLogger("Robot")
-        self.graph=GridGraph(AREA_WIDTH,AREA_HEIGHT,scale=10, rotate_buffer=Robot.HEIGHT//2)
-        self.comm.link_frobidden(self.graph.forbidden)
-        self.graph.addForbidden(600-Robot.WIDTH//2,2400+Robot.WIDTH//2,0,450+Robot.WIDTH//2) #forbidden zone pamis
+        self.graph=GridGraph(AREA_WIDTH,AREA_HEIGHT,scale=10, rotate_buffer=Robot.HEIGHT//2) if USE_GRAPH else None
+        if USE_GRAPH:
+            self.comm.link_frobidden(self.graph.forbidden)
+            self.graph.addForbidden(600-Robot.WIDTH//2,2400+Robot.WIDTH//2,0,450+Robot.WIDTH//2) #forbidden zone pamis
         
         self.noisettes = [
             NutBox(Position(100, 700, 90)),     #0
@@ -40,8 +41,7 @@ class Robot:
             NutBox(Position(2750, 1500, 90)),   #6
             NutBox(Position(2750, 700, 90))     #7
         ]        
-        self.nutBoxGroupForbidden()
-    
+        if USE_GRAPH: self.nutBoxGroupForbidden() 
         
         self.pantries = [
             Position(100, 1200, 90),
@@ -161,16 +161,16 @@ class Robot:
         return is_idle #check if actions empty
 
 class RobotChasseNeige(Robot):
-    def __init__(self, pos, comm, idle_time_buffer=0.5, action_timeout=5):
-        super().__init__(pos, comm, idle_time_buffer, action_timeout)
+    def __init__(self, pos, comm, idle_time_buffer=0.5, action_timeout=5, USE_GRAPH=True):
+        super().__init__(pos, comm, idle_time_buffer, action_timeout, USE_GRAPH)
 
     def getNutBoxPos(self):
         self.update()
         return self.pos.forward(Robot.HEIGHT//2)
 
 class RobotMagicoBus(Robot):
-    def __init__(self, pos, comm, idle_time_buffer=0.5, action_timeout=5):
-        super().__init__(pos, comm, idle_time_buffer, action_timeout)
+    def __init__(self, pos, comm, idle_time_buffer=0.5, action_timeout=5, USE_GRAPH=True):
+        super().__init__(pos, comm, idle_time_buffer, action_timeout, USE_GRAPH)
         
     def getNutBoxPos(self):
         self.update()
