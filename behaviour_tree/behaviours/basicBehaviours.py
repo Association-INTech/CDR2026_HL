@@ -6,6 +6,7 @@ from behaviour_tree.utilities.robot import AREA_WIDTH, NutBox, Robot
 
 logger = logging.getLogger(__name__)
 
+
 class GetLoc(py_trees.behaviour.Behaviour):
     """Obtient le prochain endroit"""
 
@@ -15,16 +16,16 @@ class GetLoc(py_trees.behaviour.Behaviour):
         self.blackboard = self.attach_blackboard_client(name=name)
         self.blackboard.register_key(key="loc", access=py_trees.common.Access.WRITE)
         self.queue = []
-        self.queue.append(Position(0,0,0))
+        self.queue.append(Position(0, 0, 0))
 
     def update(self):
-        if len(self.queue)==0:
+        if len(self.queue) == 0:
             logger.error("No more loc in queue")
             return py_trees.common.Status.FAILURE
-        self.blackboard.loc=self.getNextLoc()
+        self.blackboard.loc = self.getNextLoc()
         logger.debug(f"Going to {str(self.blackboard.loc)}")
         return py_trees.common.Status.SUCCESS
-    
+
     def getNextLoc(self):
         return self.queue.pop(0)
 
@@ -33,8 +34,8 @@ class GoToLoc(py_trees.decorators.PassThrough):
     """Va à l'endroit choisi"""
 
     def __init__(self, name: str, robot):
-        self.main_sequence = py_trees.composites.Sequence(name+"MainSequence", True)
-        super().__init__(name,self.main_sequence)
+        self.main_sequence = py_trees.composites.Sequence(name + "MainSequence", True)
+        super().__init__(name, self.main_sequence)
         self.robot = robot
         self.blackboard = self.attach_blackboard_client(name=name)
         self.blackboard.register_key(key="loc", access=py_trees.common.Access.READ)
@@ -43,7 +44,7 @@ class GoToLoc(py_trees.decorators.PassThrough):
     def initialise(self):
         self.main_sequence.remove_all_children()
         self.createPlanGraph()
-        #self.current_child=self.children[0]
+        # self.current_child=self.children[0]
 
     def createPlan(self):
         steps = []
@@ -55,11 +56,11 @@ class GoToLoc(py_trees.decorators.PassThrough):
 
         def addStep(step_class, value):
             steps.append((step_class.__name__, value))
-            stepsBT.append(step_class(
-                name=f"{step_class.__name__}_{value}",
-                robot=self.robot,
-                value=value
-            ))
+            stepsBT.append(
+                step_class(
+                    name=f"{step_class.__name__}_{value}", robot=self.robot, value=value
+                )
+            )
 
         target_angle = 90 if dy > 0 else -90
         distance = abs(dy)
@@ -84,8 +85,8 @@ class GoToLoc(py_trees.decorators.PassThrough):
             currentPos.angle = target_angle
 
         addStep(Move, distance)
-        
-        target_angle=self.blackboard.loc.angle
+
+        target_angle = self.blackboard.loc.angle
         rotate = target_angle - currentPos.angle
         rotate = (rotate + 180) % 360 - 180
 
@@ -94,124 +95,140 @@ class GoToLoc(py_trees.decorators.PassThrough):
             currentPos.angle = target_angle
 
         self.blackboard.plan = steps
-        self.main_sequence.add_children(stepsBT)      
+        self.main_sequence.add_children(stepsBT)
 
     def createPlanGraph(self):
         steps = []
         stepsBT = []
 
         currentPos = self.robot.getPos()
-        targetPos = Position(self.blackboard.loc.x,self.blackboard.loc.y,self.blackboard.loc.angle)
+        targetPos = Position(
+            self.blackboard.loc.x, self.blackboard.loc.y, self.blackboard.loc.angle
+        )
 
         def addStep(step_class, value):
             steps.append((step_class.__name__, value))
-            stepsBT.append(step_class(
-                name=f"{step_class.__name__}_{value}",
-                robot=self.robot,
-                value=value
-            ))
-        
-        def getStep(posA,posB):
-            diff=posB.difference(posA)
-            if (diff.y==0 and diff.angle==0):
-                return (Move,abs(diff.x))
-            elif (diff.x==0 and diff.angle==0):
-                return (Move,abs(diff.y))
-            elif (diff.x==0 and diff.y==0):
-                return (Rotate,diff.angle)
+            stepsBT.append(
+                step_class(
+                    name=f"{step_class.__name__}_{value}", robot=self.robot, value=value
+                )
+            )
+
+        def getStep(posA, posB):
+            diff = posB.difference(posA)
+            if diff.y == 0 and diff.angle == 0:
+                return (Move, abs(diff.x))
+            elif diff.x == 0 and diff.angle == 0:
+                return (Move, abs(diff.y))
+            elif diff.x == 0 and diff.y == 0:
+                return (Rotate, diff.angle)
 
         try:
-            path=self.robot.graph.getShortestPathPos(currentPos,targetPos)
+            path = self.robot.graph.getShortestPathPos(currentPos, targetPos)
         except Exception as e:
             logger.error(f"Cannot find path from {currentPos} to {targetPos}: {e}")
             return
-        
+
         if path is None:
             logger.error(f"No path found from {currentPos} to {targetPos}")
             return
 
-
         raw_steps = []
-        prev_class =  None
+        prev_class = None
         total_value = 0
-        for i in range(len(path)-1):
-            step,value=getStep(path[i],path[i+1])
-            raw_steps.append((step,value))
+        for i in range(len(path) - 1):
+            step, value = getStep(path[i], path[i + 1])
+            raw_steps.append((step, value))
 
-            if prev_class==step:
-                total_value+=value
+            if prev_class == step:
+                total_value += value
             else:
                 if prev_class is not None:
-                    addStep(prev_class,total_value)
-                prev_class=step
-                total_value=value
+                    addStep(prev_class, total_value)
+                prev_class = step
+                total_value = value
 
         if prev_class is not None:
-            addStep(prev_class,total_value)
-        
+            addStep(prev_class, total_value)
+
         self.blackboard.plan = steps
-        self.main_sequence.add_children(stepsBT)      
+        self.main_sequence.add_children(stepsBT)
+
 
 class Action(py_trees.behaviour.Behaviour):
     """Generic action"""
+
     def __init__(self, name: str, robot):
         super().__init__(name)
         self.robot = robot
-        
+
     def initialise(self):
-        self.start_time=time.time()
+        self.start_time = time.time()
 
     def update(self):
+        if self.robot.pause_event.is_set():
+            logger.info(f"{self.__class__.__name__}: paused by lidar")
+            return py_trees.common.Status.RUNNING
+
         if time.time() - self.start_time > self.robot.action_timeout:
-            logger.debug(f"{self.__class__.__name__} action timeout in {time.time() - self.start_time:.2f}s")
+            logger.debug(
+                f"{self.__class__.__name__} action timeout in {time.time() - self.start_time:.2f}s"
+            )
             return py_trees.common.Status.FAILURE
-        if self.robot.is_idle() and time.time() - self.start_time > self.robot.idle_time_buffer:
+
+        if (
+            self.robot.is_idle()
+            and time.time() - self.start_time > self.robot.idle_time_buffer
+        ):
             logger.debug(f"{self.__class__.__name__} finished action")
-            time.sleep(2)
             return py_trees.common.Status.SUCCESS
+
         return py_trees.common.Status.RUNNING
-    
+
+
 class Rotate(Action):
     """Rotate robot by a given angle"""
 
     def __init__(self, name: str, robot, value: float) -> None:
-        super().__init__(name,robot=robot)
+        super().__init__(name, robot=robot)
         self.angle = value
 
     def initialise(self):
         super().initialise()
-        self.id=self.robot.start_rotate(self.angle)
-               
+        self.id = self.robot.start_rotate(self.angle)
+
+
 class Move(Action):
     """Move robot forward by a given distance"""
 
     def __init__(self, name: str, robot, value: float) -> None:
-        super().__init__(name,robot=robot)
+        super().__init__(name, robot=robot)
         self.distance = value
 
     def initialise(self):
         super().initialise()
-        self.id=self.robot.start_move(self.distance)
+        self.id = self.robot.start_move(self.distance)
 
 
 class TopBarrier(Action):
     def __init__(self, name: str, robot, state: bool) -> None:
-        super().__init__(name,robot=robot)
+        super().__init__(name, robot=robot)
         self.state = state
 
     def initialise(self):
         super().initialise()
-        self.id=self.robot.top_barrier(self.state)
+        self.id = self.robot.top_barrier(self.state)
 
 
 class BottomBarrier(Action):
     def __init__(self, name: str, robot, state: bool) -> None:
-        super().__init__(name,robot=robot)
+        super().__init__(name, robot=robot)
         self.state = state
 
     def initialise(self):
         super().initialise()
-        self.id=self.robot.bottom_barrier(self.state)
+        self.id = self.robot.bottom_barrier(self.state)
+
 
 class UpdateNoisettePos(py_trees.behaviour.Behaviour):
     """Updates the NutBox position after being pushed"""
@@ -221,18 +238,21 @@ class UpdateNoisettePos(py_trees.behaviour.Behaviour):
         self.robot = robot
         self.blackboard = self.attach_blackboard_client(name="UpdateNoisettePos")
         self.blackboard.register_key(key="nutBox", access=py_trees.common.Access.READ)
-        self.doNewForbidden=doNewForbidden
-        
+        self.doNewForbidden = doNewForbidden
+
     def update(self):
         noisette = self.blackboard.nutBox
         noisette.setCenter(self.robot.getNutBoxPos())
         self.robot.graph.removeForbidden(noisette.index)
         if self.doNewForbidden:
-            buffer=75
-            xmin, xmax, ymin, ymax = noisette.getForbiddenZone(buffer=buffer+Robot.WIDTH // 2)
+            buffer = 75
+            xmin, xmax, ymin, ymax = noisette.getForbiddenZone(
+                buffer=buffer + Robot.WIDTH // 2
+            )
             noisette.index = self.robot.graph.addForbidden(xmin, xmax, ymin, ymax)
         return py_trees.common.Status.SUCCESS
-    
+
+
 class Start(py_trees.behaviour.Behaviour):
     """Waits for TIRETTE signal to start"""
 
@@ -247,7 +267,8 @@ class Start(py_trees.behaviour.Behaviour):
             return py_trees.common.Status.SUCCESS
         else:
             return py_trees.common.Status.RUNNING
-    
+
+
 class GetSide(py_trees.behaviour.Behaviour):
     """Determine the side of the robot based on its initial position"""
 
@@ -258,8 +279,8 @@ class GetSide(py_trees.behaviour.Behaviour):
         self.blackboard.register_key(key="side", access=py_trees.common.Access.WRITE)
 
     def update(self):
-        #pos = self.robot.getPos()
-        #self.blackboard.side = (pos.x < 1500)  # True: left/False: right
+        # pos = self.robot.getPos()
+        # self.blackboard.side = (pos.x < 1500)  # True: left/False: right
         side = self.robot.comm.getSide()
         self.blackboard.side = side
         logger.info(f"Determined side: {'Left (Yellow)' if side else 'Right (Blue)'}")
@@ -267,25 +288,26 @@ class GetSide(py_trees.behaviour.Behaviour):
 
 
 class SetStartPos(py_trees.behaviour.Behaviour):
-
     def __init__(self, name: str, robot, startPos: Position = None):
         super().__init__(name)
         self.robot = robot
         self.startPos = startPos
         self.blackboard = self.attach_blackboard_client(name=name)
         self.blackboard.register_key(key="side", access=py_trees.common.Access.READ)
-        self.blackboard.register_key(key="startPos", access=py_trees.common.Access.WRITE)
+        self.blackboard.register_key(
+            key="startPos", access=py_trees.common.Access.WRITE
+        )
 
     def initialise(self):
         if self.startPos is None:
             self.startPos = self.robot.pos
             logger.warning("SetStartPos: startPos arg is None, using %s", self.startPos)
             return
-    
+
     def update(self):
-        if self.blackboard.side: # left
+        if self.blackboard.side:  # left
             self.blackboard.startPos = self.startPos
-        else: # right
+        else:  # right
             self.blackboard.startPos = self.startPos.getSymmetric(AREA_WIDTH)
         return py_trees.common.Status.SUCCESS
 
@@ -303,7 +325,9 @@ class CheckTime(py_trees.behaviour.Behaviour):
         logger.debug(f"Time: {elapsed:.2f}s elapsed")
         if elapsed < self.end_time:
             return py_trees.common.Status.SUCCESS
-        logger.debug(f"Time limit reached: {elapsed:.2f}s elapsed, limit was {self.end_time}s")
+        logger.debug(
+            f"Time limit reached: {elapsed:.2f}s elapsed, limit was {self.end_time}s"
+        )
         return py_trees.common.Status.FAILURE
 
 
@@ -320,7 +344,8 @@ class SetLoc(py_trees.behaviour.Behaviour):
     def update(self):
         self.blackboard.loc = self.loc
         return py_trees.common.Status.SUCCESS
-    
+
+
 class NutBoxShiftCamera(py_trees.behaviour.Behaviour):
     """Writes shift from camera on the blackboard."""
 
@@ -329,52 +354,62 @@ class NutBoxShiftCamera(py_trees.behaviour.Behaviour):
         self.robot = robot
         self.blackboard = self.attach_blackboard_client(name=name)
         self.blackboard.register_key(key="side", access=py_trees.common.Access.READ)
-        self.blackboard.register_key(key="nutBoxShift", access=py_trees.common.Access.WRITE)
+        self.blackboard.register_key(
+            key="nutBoxShift", access=py_trees.common.Access.WRITE
+        )
 
     def initialise(self):
-        self.start_time=time.time()
-    
+        self.start_time = time.time()
+
     def update(self):
         gates = self.robot.comm.checkCamera(self.blackboard.side)
-        
+
         if sum(gates) != 2:
             return py_trees.common.Status.RUNNING
-        
+
         timeout = 2.0
-        
+
         if time.time() - self.start_time > timeout:
             return py_trees.common.Status.FAILURE
-        
+
         match gates:
             case [1, 1, 0, 0]:
                 shift = -2  # décale de 2 blocs à gauche
             case [1, 0, 0, 0] | [1, 0, 1, 0] | [1, 0, 0, 1]:
                 shift = -1  # décale de 1 blocs à gauche
             case [0, 0, 1, 1]:
-                shift = 2   # décale de 2 blocs à droite
+                shift = 2  # décale de 2 blocs à droite
             case [0, 0, 0, 1] | [0, 1, 0, 1]:
-                shift = 1   # décale de 1 blocs à droite
+                shift = 1  # décale de 1 blocs à droite
             case _:
-                shift = 0   # reste sur place
-                
+                shift = 0  # reste sur place
+
         self.blackboard.nutBoxShift = shift
         return py_trees.common.Status.SUCCESS
-        
+
+
 class Push(py_trees.decorators.PassThrough):
     """Pushes the current NutBox"""
 
     def __init__(self, name: str, robot, pushDistance: int):
-        self.main_sequence = py_trees.composites.Sequence(name+"MainSequence", True)
-        super().__init__(name,self.main_sequence)
+        self.main_sequence = py_trees.composites.Sequence(name + "MainSequence", True)
+        super().__init__(name, self.main_sequence)
         self.robot = robot
         self.blackboard = self.attach_blackboard_client(name=name)
-        self.blackboard.register_key(key="nutBoxShift", access=py_trees.common.Access.READ)
+        self.blackboard.register_key(
+            key="nutBoxShift", access=py_trees.common.Access.READ
+        )
         self.pushDistance = pushDistance
 
     def initialise(self):
-        pushDistance = self.pushDistance + self.blackboard.nutBoxShift * NutBox.HEIGHT  # Adjust push distance
+        pushDistance = (
+            self.pushDistance + self.blackboard.nutBoxShift * NutBox.HEIGHT
+        )  # Adjust push distance
         self.main_sequence.remove_all_children()
-        self.main_sequence.add_child(Move(name="PushMove", robot=self.robot, value=pushDistance))
+        self.main_sequence.add_child(
+            Move(name="PushMove", robot=self.robot, value=pushDistance)
+        )
+
 
 class CheckLidar(py_trees.behaviour.Behaviour):
     """Checks the lidar for obstacles"""
@@ -383,8 +418,10 @@ class CheckLidar(py_trees.behaviour.Behaviour):
         super().__init__(name)
         self.robot = robot
         self.blackboard = self.attach_blackboard_client(name=name)
-        self.blackboard.register_key(key="was_stopped", access=py_trees.common.Access.WRITE)
-        
+        self.blackboard.register_key(
+            key="was_stopped", access=py_trees.common.Access.WRITE
+        )
+
     def update(self):
         pos = self.robot.getPos()
         is_obstacle = self.robot.comm.lidar(pos)
@@ -393,7 +430,8 @@ class CheckLidar(py_trees.behaviour.Behaviour):
             logger.info("Lidar: Obstacle detected")
             return py_trees.common.Status.FAILURE
         return py_trees.common.Status.SUCCESS
-    
+
+
 class Stop(py_trees.behaviour.Behaviour):
     """Stop robot"""
 
@@ -402,13 +440,14 @@ class Stop(py_trees.behaviour.Behaviour):
         self.robot = robot
 
     def initialise(self):
-        self.id=self.robot.stop()
-        
+        self.id = self.robot.stop()
+
     def update(self):
         if self.robot.comm.get_feedback(self.id):
             return py_trees.common.Status.SUCCESS
         return py_trees.common.Status.FAILURE
-    
+
+
 class SetPosOffset(py_trees.behaviour.Behaviour):
     """Set position offset with LL"""
 
@@ -420,10 +459,16 @@ class SetPosOffset(py_trees.behaviour.Behaviour):
 
     def update(self):
         posComm = self.robot.comm.get_position()
-        logger.info(f"SetPosOffset: posComm {posComm}, current robot pos {self.blackboard.startPos}")
+        logger.info(
+            f"SetPosOffset: posComm {posComm}, current robot pos {self.blackboard.startPos}"
+        )
         if posComm is None:
-            logger.warning("SetPosOffset: get_position returned None, offset not updated")
+            logger.warning(
+                "SetPosOffset: get_position returned None, offset not updated"
+            )
             return py_trees.common.Status.RUNNING
         self.robot.commPosOffset = self.blackboard.startPos.difference(posComm)
-        logger.info(f"SetPosOffset: Updated position offset to {self.robot.commPosOffset}")
+        logger.info(
+            f"SetPosOffset: Updated position offset to {self.robot.commPosOffset}"
+        )
         return py_trees.common.Status.SUCCESS

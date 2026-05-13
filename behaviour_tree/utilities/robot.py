@@ -5,6 +5,9 @@ import time
 from behaviour_tree.utilities.graph import GridGraph
 from utilities.logging_setup import setup_logging
 
+import threading
+
+
 AREA_WIDTH = 3000
 AREA_HEIGHT = 2000
 
@@ -61,6 +64,57 @@ class Robot:
             Position(1250, 550, 0),
             Position(1750, 550, 0),
         ]
+
+        self.pause_event = threading.Event()
+        self.lidar_stop_event = threading.Event()
+        self.lidar_thread = None
+        self.lidar_enabled = False
+
+    def start_lidar_monitor(self, period=0.05):
+        """
+        Lance un thread de surveillance lidar.
+        period = période en secondes entre deux checks.
+        """
+        if self.lidar_thread is not None and self.lidar_thread.is_alive():
+            return
+
+        self.lidar_enabled = True
+        self.lidar_stop_event.clear()
+
+        def lidar_loop():
+            was_paused = False
+
+            while not self.lidar_stop_event.is_set():
+                try:
+                    pos = self.getPos()
+                    obstacle = self.comm.lidar(pos)
+
+                    if obstacle and not was_paused:
+                        self.comm.pause()
+                        self.pause_event.set()
+                        was_paused = True
+                        self.logger.warning("Lidar monitor: obstacle detected -> pause")
+
+                    elif not obstacle and was_paused:
+                        self.comm.resume()
+                        self.pause_event.clear()
+                        was_paused = False
+                        self.logger.info("Lidar monitor: obstacle cleared -> resume")
+
+                except Exception as e:
+                    self.logger.error(f"Lidar monitor error: {e}")
+
+                time.sleep(period)
+
+        self.lidar_thread = threading.Thread(target=lidar_loop, daemon=True)
+        self.lidar_thread.start()
+        self.logger.info("Lidar monitor started")
+
+    def stop_lidar_monitor(self):
+        self.lidar_stop_event.set()
+        if self.lidar_thread is not None:
+            self.lidar_thread.join(timeout=1.0)
+        self.logger.info("Lidar monitor stopped")
 
     def startBT(self, root, robot):
         behaviour_tree = py_trees.trees.BehaviourTree(root=root)
