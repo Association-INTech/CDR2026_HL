@@ -74,8 +74,7 @@ class CommunicationCan(Comm):
             self.switchBus("asserv")
         # angle=angle+45
         # rotate shortest direction
-        if angle > 180:
-            angle = 180 - angle
+        angle = (angle + 180) % 360 - 180
         angle_rad = angle * math.pi / 180
         self.bus.send("rotate", -angle_rad)
         logger.debug("CAN: Rotate command sent: %f rad, %f deg", angle_rad, angle)

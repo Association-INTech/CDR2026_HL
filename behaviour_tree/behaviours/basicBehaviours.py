@@ -22,8 +22,12 @@ class GetLoc(py_trees.behaviour.Behaviour):
         if len(self.queue) == 0:
             logger.error("No more loc in queue")
             return py_trees.common.Status.FAILURE
-        self.blackboard.loc = self.getNextLoc()
-        logger.debug(f"Going to {str(self.blackboard.loc)}")
+        next_loc = self.getNextLoc()
+        if next_loc is None:
+            logger.error("Next loc is None")
+            return py_trees.common.Status.FAILURE
+        self.blackboard.loc = next_loc
+        logger.debug(f"Going to {self.blackboard.loc}")
         return py_trees.common.Status.SUCCESS
 
     def getNextLoc(self):
@@ -175,7 +179,6 @@ class Action(py_trees.behaviour.Behaviour):
                 f"{self.__class__.__name__} action timeout in {time.time() - self.start_time:.2f}s"
             )
             return py_trees.common.Status.FAILURE
-
         if (
             self.robot.is_idle()
             and time.time() - self.start_time > self.robot.idle_time_buffer
@@ -364,13 +367,13 @@ class NutBoxShiftCamera(py_trees.behaviour.Behaviour):
     def update(self):
         gates = self.robot.comm.checkCamera(self.blackboard.side)
 
-        if sum(gates) != 2:
-            return py_trees.common.Status.RUNNING
-
         timeout = 2.0
 
         if time.time() - self.start_time > timeout:
             return py_trees.common.Status.FAILURE
+
+        if sum(gates) != 2:
+            return py_trees.common.Status.RUNNING
 
         match gates:
             case [1, 1, 0, 0]:
@@ -445,7 +448,7 @@ class Stop(py_trees.behaviour.Behaviour):
     def update(self):
         if self.robot.comm.get_feedback(self.id):
             return py_trees.common.Status.SUCCESS
-        return py_trees.common.Status.FAILURE
+        return py_trees.common.Status.RUNNING
 
 
 class SetPosOffset(py_trees.behaviour.Behaviour):
