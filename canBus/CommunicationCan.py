@@ -91,6 +91,18 @@ class CommunicationCan(Comm):
         self.bus.send("stop")
         logger.debug("CAN: Stop command sent")
 
+    def pause(self):
+        if self.bus.reg != reg_asserv:
+            self.switchBus("asserv")
+        self.bus.send("pause")
+        logger.debug("CAN: Pause command sent")
+
+    def resume(self):
+        if self.bus.reg != reg_asserv:
+            self.switchBus("asserv")
+        self.bus.send("resume")
+        logger.debug("CAN: Resume command sent")
+
     def checkCamera(self, side):
         color = "yellow" if side else "blue"
         try:

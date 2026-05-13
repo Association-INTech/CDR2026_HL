@@ -170,6 +170,10 @@ class Action(py_trees.behaviour.Behaviour):
         self.start_time = time.time()
 
     def update(self):
+        if self.robot.pause_event.is_set():
+            logger.info(f"{self.__class__.__name__}: paused by lidar")
+            return py_trees.common.Status.RUNNING
+
         if time.time() - self.start_time > self.robot.action_timeout:
             logger.debug(
                 f"{self.__class__.__name__} action timeout in {time.time() - self.start_time:.2f}s"
@@ -181,6 +185,7 @@ class Action(py_trees.behaviour.Behaviour):
         ):
             logger.debug(f"{self.__class__.__name__} finished action")
             return py_trees.common.Status.SUCCESS
+
         return py_trees.common.Status.RUNNING
 
 
