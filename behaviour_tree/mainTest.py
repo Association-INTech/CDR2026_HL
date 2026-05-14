@@ -49,8 +49,8 @@ strategy = "2_3_0"
 
 NB_0 = 0
 NB_1 = 0
-NB_2 = 0
-NB_3 = 0
+NB_2 = 3
+NB_3 = 2
 NB_4 = 0
 NB_5 = 0
 NB_6 = 0
@@ -224,24 +224,31 @@ if __name__ == "__main__":
     strat_2_3_0 = [
         "move 400",
         f"rotate {GAUCHE}",
-        "move 1000",
+        "move 1050",
         f"rotate {DROITE}",
         "move 500",
         f"rotate {DROITE}",
-        "move 210",
     ]
     if NB_2 > 0:
-        strat_2_3_0 += [f"move {NB_2}", f"move -{NB_2}"]
+        strat_2_3_0 += [f"move {260 + NB_2}", f"move -{260 + NB_2}"]
+
+    else:
+        strat_2_3_0 += ["move 260", "move -260"]
 
     strat_2_3_0 += [
-        "move -210",
         f"rotate {GAUCHE}",
-        "move 630",
+        "move 530",
         f"rotate {DROITE}",
-        "move 280",
-        "move -280",
+    ]
+
+    if NB_3 > 0:
+        strat_2_3_0 += [f"move {330 + NB_3}", f"move -{330 + NB_3}"]
+    else:
+        strat_2_3_0 += ["move 330", "move -330"]
+
+    strat_2_3_0 += [
         f"rotate {DROITE}",
-        "move 1280",
+        "move 800",
         f"rotate {GAUCHE}",
         "move 1200",
         f"rotate {DROITE}",
