@@ -68,13 +68,13 @@ def nearest(scan: np.ndarray) -> tuple:
     """
     distances = [i[1] for i in scan]
     if not distances:
-        print(f"Pas d'obstacle à {distance_max} mm ou le lidar n'a rien capté")
+        #print(f"Pas d'obstacle à {distance_max} mm ou le lidar n'a rien capté")
         return 0, float('inf')
 
     rang = distances.index(min(distances))
     obstacle = scan[rang]
-    print("Obstacle le plus proche :", obstacle[1], "mm")
-    print("Angle (deg) :", obstacle[0] * 180 / np.pi)
+    #print("Obstacle le plus proche :", obstacle[1], "mm")
+    #print("Angle (deg) :", obstacle[0] * 180 / np.pi)
     return scan[rang]
 
 
