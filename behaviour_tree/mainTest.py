@@ -104,7 +104,7 @@ if __name__ == "__main__":
     ILDE_TIME_BUFFER = (
         2  # seconds minimum to wait after each action before starting the next one
     )
-    ACTION_TIMEOUT = 10  # seconds to wait before considering an action failed
+    ACTION_TIMEOUT = 1000000  # seconds to wait before considering an action failed
 
     logger = logging.getLogger(__name__)
     logger.info("===== Main Program Started =====")
