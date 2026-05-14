@@ -27,7 +27,7 @@ class Strat02534:
 
         strat += [
             f"rotate {gauche}",
-            "move 1200",
+            "move 1220",
             f"rotate {droite}",
             "move 500",
             f"rotate {droite}",
@@ -55,9 +55,9 @@ class Strat02534:
             strat += ["move 460", "move -460"]
 
         if nb_4 > 0:
-            strat += [f"move -{680 + nb_4}", f"move {680 + nb_4}"]
+            strat += [f"move -{480 + nb_4}", f"move {480 + nb_4}"]
         else:
-            strat += ["move -680", "move 680"]
+            strat += ["move -480", "move 480"]
 
         strat += [
             f"rotate {droite}",
