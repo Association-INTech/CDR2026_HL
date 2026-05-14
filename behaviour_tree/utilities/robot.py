@@ -70,7 +70,7 @@ class Robot:
         self.lidar_thread = None
         self.lidar_enabled = False
 
-    def start_lidar_monitor(self, period=0.05):
+    def start_lidar_monitor(self, period=0.5):
         """
         Lance un thread de surveillance lidar.
         period = période en secondes entre deux checks.
