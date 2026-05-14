@@ -46,6 +46,17 @@ if SIMULATION:
 else:
     from canBus.CommunicationCan import CommunicationCan as Comm
 
+
+ORANGE = True
+
+if ORANGE:
+    GAUCHE = 90
+    DROITE = 270
+else:
+    GAUCHE = 270
+    DROITE = 90
+
+
 if __name__ == "__main__":
     DISTANCE_CODEUSES = 54
     START_POS = Position(420, RobotChasseNeige.DISTANCE_CODEUSES, 90)
@@ -147,23 +158,23 @@ if __name__ == "__main__":
     """
     sequence_main.add_child(Move(name="Move1", value=770, robot=robot))
     sequence_main.add_child(Move(name="Move1", value=-250, robot=robot))
-    sequence_main.add_child(Rotate(name="Rotate", value=270, robot=robot))
+    sequence_main.add_child(Rotate(name="Rotate", value=DROITE, robot=robot))
     sequence_main.add_child(Move(name="Move3", value=1500, robot=robot))
-    sequence_main.add_child(Rotate(name="Rotate", value=90, robot=robot))
+    sequence_main.add_child(Rotate(name="Rotate", value=GAUCHE, robot=robot))
     sequence_main.add_child(Move(name="Move3", value=350, robot=robot))
-    sequence_main.add_child(Rotate(name="Rotate", value=90, robot=robot))
+    sequence_main.add_child(Rotate(name="Rotate", value=GAUCHE, robot=robot))
     sequence_main.add_child(Move(name="Move3", value=610, robot=robot))
     sequence_main.add_child(Move(name="Move3", value=-610, robot=robot))
-    sequence_main.add_child(Rotate(name="Rotate", value=270, robot=robot))
+    sequence_main.add_child(Rotate(name="Rotate", value=DROITE, robot=robot))
     sequence_main.add_child(Move(name="Move3", value=630, robot=robot))
-    sequence_main.add_child(Rotate(name="Rotate", value=90, robot=robot))
+    sequence_main.add_child(Rotate(name="Rotate", value=GAUCHE, robot=robot))
     sequence_main.add_child(Move(name="Move3", value=430, robot=robot))
     sequence_main.add_child(Move(name="Move3", value=-430, robot=robot))
-    sequence_main.add_child(Rotate(name="Rotate", value=90, robot=robot))
+    sequence_main.add_child(Rotate(name="Rotate", value=GAUCHE, robot=robot))
     sequence_main.add_child(Move(name="Move3", value=350 + 630, robot=robot))
-    sequence_main.add_child(Rotate(name="Rotate", value=270, robot=robot))
+    sequence_main.add_child(Rotate(name="Rotate", value=DROITE, robot=robot))
     sequence_main.add_child(Move(name="Move3", value=1500, robot=robot))
-    sequence_main.add_child(Rotate(name="Rotate", value=90, robot=robot))
+    sequence_main.add_child(Rotate(name="Rotate", value=DROITE, robot=robot))
     sequence_main.add_child(Move(name="Move3", value=520, robot=robot))
 
     sequence_strategie.add_child(sequence_main)
