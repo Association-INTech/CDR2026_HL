@@ -231,7 +231,7 @@ if __name__ == "__main__":
 
     strat_2_3_0 += [
         f"rotate {GAUCHE}",
-        "move 280",
+        "move 380",
         f"rotate {DROITE}",
     ]
 
@@ -244,7 +244,7 @@ if __name__ == "__main__":
         f"rotate {DROITE}",
         "move 650",
         f"rotate {GAUCHE}",
-        "move 1150",
+        "move 1250",
         f"rotate {DROITE}",
         "move 520",
     ]
@@ -266,7 +266,7 @@ if __name__ == "__main__":
 
     strat_2_3_1_0 += [
         f"rotate {GAUCHE}",
-        "move 280",
+        "move 380",
         f"rotate {DROITE}",
     ]
 
@@ -279,7 +279,7 @@ if __name__ == "__main__":
         f"rotate {DROITE}",
         "move 800",
         f"rotate {GAUCHE}",
-        "move 1150",
+        "move 1250",
         f"rotate {DROITE}",
         "move 520",
     ]
