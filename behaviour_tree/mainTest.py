@@ -45,11 +45,12 @@ else:
     GAUCHE = 90
     DROITE = 270
 
-strategy = "2_3_0"
+strategy = "2_3_1_0"  # 2_3_1_0 ou 2_3_0
+
 
 NB_0 = 0
 NB_1 = 0
-NB_2 = 3
+NB_2 = 5
 NB_3 = 2
 NB_4 = 0
 NB_5 = 0
@@ -72,7 +73,7 @@ pose_depart = Position(
     90,
 )
 
-if strategy == "2_3_0":
+if strategy == "2_3_0" or "2_3_1_0":
     pose_depart = Position(
         130 + RobotChasseNeige.WIDTH,
         540 - RobotChasseNeige.DISTANCE_CODEUSES - RobotChasseNeige.HEIGHT,
@@ -250,12 +251,66 @@ if __name__ == "__main__":
         f"rotate {DROITE}",
         "move 800",
         f"rotate {GAUCHE}",
-        "move 1200",
+        "move 1150",
         f"rotate {DROITE}",
         "move 520",
     ]
+
+    # ------------------------------------------------------------------------------------------------------------------------
+    strat_2_3_1_0 = [
+        "move 400",
+        f"rotate {GAUCHE}",
+        "move 1050",
+        f"rotate {DROITE}",
+        "move 500",
+        f"rotate {DROITE}",
+    ]
+    if NB_2 > 0:
+        strat_2_3_1_0 += [f"move {260 + NB_2}", f"move -{260 + NB_2}"]
+
+    else:
+        strat_2_3_1_0 += ["move 260", "move -260"]
+
+    strat_2_3_1_0 += [
+        f"rotate {GAUCHE}",
+        "move 530",
+        f"rotate {DROITE}",
+    ]
+
+    if NB_3 > 0:
+        strat_2_3_1_0 += [f"move {330 + NB_3}", f"move -{330 + NB_3}"]
+    else:
+        strat_2_3_1_0 += ["move 330", "move -330"]
+
+    strat_2_3_1_0 += [
+        f"rotate {DROITE}",
+        "move 800",
+        f"rotate {GAUCHE}",
+        "move 1150",
+        f"rotate {DROITE}",
+        "move 520",
+    ]
+
+    strat_2_3_1_0 += [
+        "move -520",
+        f"rotate {DROITE}",
+        "move 200",
+        f"rotate {DROITE}",
+        "move 800",
+        f"rotate {DROITE}",
+        "move 200",
+        f"rotate {DROITE}",
+        "move 500",
+    ]
+
+    strat = strat_2_3_0
+    if strategy == "2_3_0":
+        strat = strat_2_3_0
+
+    if strategy == "2_3_1_0":
+        strat = strat_2_3_1_0
     sequence_main.add_child(
-        ProcedureHardCoded(name="ProcedureHardCoded", strategy=strat_2_3_0, robot=robot)
+        ProcedureHardCoded(name="ProcedureHardCoded", strategy=strat, robot=robot)
     )
 
     sequence_strategie.add_child(sequence_main)
