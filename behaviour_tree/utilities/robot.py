@@ -15,7 +15,7 @@ class Robot:
     HEIGHT=175
     DISTANCE_CODEUSES = 54
     
-    def __init__(self, startPos, comm, idle_time_buffer=0.5, action_timeout=5, USE_GRAPH=True):
+    def __init__(self, startPos, comm, idle_time_buffer=0.5, action_timeout=5, USE_LIDAR=False, USE_GRAPH=True):
         setup_logging()
         self.pos=startPos
         self.commPosOffset=Position(0,0,0)
@@ -27,6 +27,7 @@ class Robot:
         self.start_time = time.time()
         self.logger = logging.getLogger("Robot")
         self.graph=GridGraph(AREA_WIDTH,AREA_HEIGHT,scale=10, rotate_buffer=Robot.HEIGHT//2) if USE_GRAPH else None
+        self.USE_LIDAR = USE_LIDAR
         if USE_GRAPH:
             self.comm.link_frobidden(self.graph.forbidden)
             self.graph.addForbidden(600-Robot.WIDTH//2,2400+Robot.WIDTH//2,0,450+Robot.WIDTH//2) #forbidden zone pamis
