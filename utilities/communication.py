@@ -45,7 +45,7 @@ class Comm:
 
     def lidar(self, pos):
         state = False
-        logger.info("Placeholder: Lidar %s: %s", id, state)
+        logger.debug("Placeholder: Lidar %s: %s", id, state)
         return state
 
     def tick_simulation(self, tree) -> None:
