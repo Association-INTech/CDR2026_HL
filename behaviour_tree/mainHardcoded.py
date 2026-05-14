@@ -41,20 +41,34 @@ import argparse
 
 
 GAUCHE = 270
-DROITE = 90
+DROITE = 360 - GAUCHE
 
 parser = argparse.ArgumentParser(
     description="Run robot controller in Sim or Hardware mode."
 )
 parser.add_argument("--sim", action="store_true", help="Run in simulation mode")
 parser.add_argument("--nb0", type=int, default=4, help="box count to push for pantry 0")
-parser.add_argument("--nb1", type=int, default=4, help="box count to push for pantry 1.")
-parser.add_argument("--nb2", type=int, default=4, help="box count to push for pantry 2.")
-parser.add_argument("--nb3", type=int, default=4, help="box count to push for pantry 3.")
-parser.add_argument("--nb4", type=int, default=4, help="box count to push for pantry 4.")
-parser.add_argument("--nb5", type=int, default=4, help="box count to push for pantry 5.")
-parser.add_argument("--nb6", type=int, default=4, help="box count to push for pantry 6.")
-parser.add_argument("--nb7", type=int, default=4, help="box count to push for pantry 7.")
+parser.add_argument(
+    "--nb1", type=int, default=4, help="box count to push for pantry 1."
+)
+parser.add_argument(
+    "--nb2", type=int, default=4, help="box count to push for pantry 2."
+)
+parser.add_argument(
+    "--nb3", type=int, default=4, help="box count to push for pantry 3."
+)
+parser.add_argument(
+    "--nb4", type=int, default=4, help="box count to push for pantry 4."
+)
+parser.add_argument(
+    "--nb5", type=int, default=4, help="box count to push for pantry 5."
+)
+parser.add_argument(
+    "--nb6", type=int, default=4, help="box count to push for pantry 6."
+)
+parser.add_argument(
+    "--nb7", type=int, default=4, help="box count to push for pantry 7."
+)
 parser.add_argument(
     "--strat",
     choices=["230", "2310", "02534"],
@@ -83,7 +97,7 @@ NB_5 = args.nb5
 NB_6 = args.nb6
 NB_7 = args.nb7
 
-nb_list = [NB_0, NB_1, NB_2, NB_3, NB_4, NB_5, NB_6, NB_7] 
+nb_list = [NB_0, NB_1, NB_2, NB_3, NB_4, NB_5, NB_6, NB_7]
 
 if SIMULATION:
     from simulation.simulation import SimRobotChasseNeige
@@ -179,11 +193,11 @@ if __name__ == "__main__":
     )
 
     sequence_main = py_trees.composites.Sequence("sequence_main", memory=True)
-    
+
     # ------------------------------------------------------------------------------------------------------------------------
 
     strat = current_strategy.get_strat(GAUCHE, DROITE, nb_list)
-        
+
     sequence_main.add_child(
         ProcedureHardCoded(name="ProcedureHardCoded", strategy=strat, robot=robot)
     )

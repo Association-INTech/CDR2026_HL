@@ -26,7 +26,6 @@ class Strat02534:
             strat = [f"move {move_nb_zero}"]
 
         strat += [
-            "move -120",
             f"rotate {gauche}",
             "move 1250",
             f"rotate {droite}",
@@ -66,7 +65,7 @@ class Strat02534:
             f"rotate {gauche}",
             "move 1150",
             f"rotate {droite}",
-            "move 620",
+            "move 620",mmmmmmmpç_çik;                                                                                               nnnnnnn      ""
         ]
 
         return strat
