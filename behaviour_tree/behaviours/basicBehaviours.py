@@ -180,10 +180,10 @@ class Action(py_trees.behaviour.Behaviour):
                 self.is_stopped = False
         
         if time.time() - self.start_time > self.robot.action_timeout:
-            logger.debug(f"{self.__class__.__name__} action timeout in {time.time() - self.start_time:.2f}s")
+            logger.info(f"{self.__class__.__name__} action timeout in {time.time() - self.start_time:.2f}s")
             return py_trees.common.Status.FAILURE
         if self.robot.is_idle() and time.time() - self.start_time > self.robot.idle_time_buffer:
-            logger.debug(f"{self.__class__.__name__} finished action")
+            logger.info(f"{self.__class__.__name__} finished action")
             time.sleep(2)
             return py_trees.common.Status.SUCCESS
         return py_trees.common.Status.RUNNING
@@ -320,7 +320,7 @@ class CheckTime(py_trees.behaviour.Behaviour):
         logger.debug(f"Time: {elapsed:.2f}s elapsed")
         if elapsed < self.end_time:
             return py_trees.common.Status.SUCCESS
-        logger.debug(f"Time limit reached: {elapsed:.2f}s elapsed, limit was {self.end_time}s")
+        logger.info(f"Time limit reached: {elapsed:.2f}s elapsed, limit was {self.end_time}s")
         return py_trees.common.Status.FAILURE
 
 

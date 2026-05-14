@@ -57,21 +57,27 @@ class Robot:
             Position(1750, 550, 0)
 
         ]
-    
     def startBT(self, root, robot):
         behaviour_tree = py_trees.trees.BehaviourTree(root=root)
         self.logger.debug(py_trees.display.unicode_tree(root=root))
         behaviour_tree.setup(timeout=15)
 
+        self.last = None
 
         def post_tick_handler(tree: py_trees.trees.BehaviourTree) -> None:
-            """Print tree and check for completion."""
-            self.logger.debug(py_trees.display.unicode_tree(root=tree.root, show_status=True))
+            """Print tree only if status or structure changed, and check for completion."""
+            
+            current = py_trees.display.unicode_tree(root=tree.root, show_status=True)
+            
+            if current != self.last:
+                self.logger.info(f"\n{current}")
+                self.last = current
             
             if tree.root.status in [py_trees.common.Status.SUCCESS, py_trees.common.Status.FAILURE]:
-                self.logger.debug(f"Finished | Status: {tree.root.status}")
+                self.logger.info(f"Finished | Status: {tree.root.status}")
                 raise SystemExit                
-        py_trees.logging.level = py_trees.logging.Level.DEBUG
+
+        py_trees.logging.level = py_trees.logging.Level.INFO
 
         try:
             behaviour_tree.tick_tock(
@@ -81,8 +87,7 @@ class Robot:
                 post_tick_handler=post_tick_handler
             )
         except KeyboardInterrupt:
-            behaviour_tree.interrupt()
-    
+            behaviour_tree.interrupt()    
     def nutBoxGroupForbidden(self):
         for noisette in self.noisettes:
             xmin,xmax,ymin,ymax=noisette.getForbiddenZone(buffer=Robot.WIDTH//2+10)
