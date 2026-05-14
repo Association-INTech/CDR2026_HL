@@ -87,6 +87,8 @@ class Robot:
                 post_tick_handler=post_tick_handler
             )
         except KeyboardInterrupt:
+            self.logger.info("Ctrl+C : Sent Stop CAN")
+            robot.comm.stop()
             behaviour_tree.interrupt()    
     def nutBoxGroupForbidden(self):
         for noisette in self.noisettes:
