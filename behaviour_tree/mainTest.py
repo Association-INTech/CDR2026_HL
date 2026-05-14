@@ -45,13 +45,16 @@ else:
     GAUCHE = 90
     DROITE = 270
 
-strategy = "2_3_0"  # 2_3_1_0 ou 2_3_0
+strategy = "0_2_5_3_4"  # 2_3_1_0 ou 2_3_0 ou 0_2_5_3_4
+
+# pour 0_2_5_3_4 on est contre la raie noir le plus en avant possible
+# pour le reste on est contre le mure gauche tout au fond
 
 
 NB_0 = 0
 NB_1 = 0
-NB_2 = 5
-NB_3 = 2
+NB_2 = 0
+NB_3 = 0
 NB_4 = 0
 NB_5 = 0
 NB_6 = 0
@@ -79,6 +82,12 @@ if strategy == "2_3_0" or "2_3_1_0":
         540 - RobotChasseNeige.DISTANCE_CODEUSES - RobotChasseNeige.HEIGHT,
         90,
     )
+if strategy == "0_2_5_3_4":
+    pose_depart = Position(
+        130 + RobotChasseNeige.WIDTH / 2,
+        540 - RobotChasseNeige.DISTANCE_CODEUSES - RobotChasseNeige.HEIGHT,
+        90,
+    )
 
 
 parser = argparse.ArgumentParser(
@@ -102,7 +111,7 @@ if __name__ == "__main__":
     USELIDAR = True
     USECAMERA = False
     ILDE_TIME_BUFFER = (
-        2  # seconds minimum to wait after each action before starting the next one
+        0.5  # seconds minimum to wait after each action before starting the next one
     )
     ACTION_TIMEOUT = 1000000  # seconds to wait before considering an action failed
 
@@ -242,7 +251,7 @@ if __name__ == "__main__":
 
     strat_2_3_0 += [
         f"rotate {DROITE}",
-        "move 700",
+        "move 600",
         f"rotate {GAUCHE}",
         "move 1350",
         f"rotate {DROITE}",
@@ -295,6 +304,62 @@ if __name__ == "__main__":
         f"rotate {DROITE}",
         "move 500",
     ]
+    # --------------------------------------------------------------------------------------------------------------------------
+
+    move_nb_zero = 450
+    if NB_0 > 0:
+        strat_0_2_5_3_4 = [
+            f"move {move_nb_zero + NB_0}",
+            f"move -{NB_0}",
+        ]
+
+    else:
+        strat_0_2_5_3_4 = [f"move {move_nb_zero}"]
+
+    strat_0_2_5_3_4 += [
+        "move -120",
+        f"rotate {GAUCHE}",
+        "move 1250",
+        f"rotate {DROITE}",
+        "move 500",
+        f"rotate {DROITE}",
+    ]
+    if NB_2 > 0:
+        strat_0_2_5_3_4 += [f"move {310 + NB_2}", f"move -{310 + NB_2}"]
+
+    else:
+        strat_0_2_5_3_4 += ["move 310", "move -310"]
+
+    if NB_5 > 0:
+        strat_0_2_5_3_4 += [f"move -{340 + NB_5}", f"move {340 + NB_5}"]
+
+    else:
+        strat_0_2_5_3_4 += ["move -340", "move 340"]
+
+    strat_0_2_5_3_4 += [
+        f"rotate {GAUCHE}",
+        "move 430",
+        f"rotate {DROITE}",
+    ]
+
+    if NB_3 > 0:
+        strat_0_2_5_3_4 += [f"move {360 + NB_3}", f"move -{360 + NB_3}"]
+    else:
+        strat_0_2_5_3_4 += ["move 360", "move -360"]
+
+    if NB_4 > 0:
+        strat_0_2_5_3_4 += [f"move -{480 + NB_4}", f"move {480 + NB_4}"]
+    else:
+        strat_0_2_5_3_4 += ["move -480", "move 480"]
+
+    strat_0_2_5_3_4 += [
+        f"rotate {DROITE}",
+        "move 800",
+        f"rotate {GAUCHE}",
+        "move 1150",
+        f"rotate {DROITE}",
+        "move 620",
+    ]
 
     strat = strat_2_3_0
     if strategy == "2_3_0":
@@ -302,6 +367,10 @@ if __name__ == "__main__":
 
     if strategy == "2_3_1_0":
         strat = strat_2_3_1_0
+
+    if strategy == "0_2_5_3_4":
+        strat = strat_0_2_5_3_4
+
     sequence_main.add_child(
         ProcedureHardCoded(name="ProcedureHardCoded", strategy=strat, robot=robot)
     )
