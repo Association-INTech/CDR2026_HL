@@ -107,7 +107,7 @@ def run(x0, y0, theta0) -> None:
         scan = update(laser)
         theta, distance = nearest(scan)
         coordinates = coordinatesCalculator(x0, y0, theta0, theta, distance)
-        print(coordinates)
+        #print(coordinates)
         return in_the_field(coordinates), distance, theta*180/np.pi
         time.sleep(1e-3)
     finally:
