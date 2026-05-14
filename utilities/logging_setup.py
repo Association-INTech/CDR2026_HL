@@ -18,7 +18,7 @@ def setup_logging(log_filename: str = "py_trees.log") -> Path:
 
     log_file = log_dir / log_filename
     logging.basicConfig(
-        level=logging.DEBUG,
+        level=logging.INFO,
         format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
         handlers=[
             logging.FileHandler(log_file),
@@ -26,5 +26,8 @@ def setup_logging(log_filename: str = "py_trees.log") -> Path:
         ],
         force=True,
     )
+    
+    logging.getLogger("hokuyo").setLevel(logging.WARNING)
+    
     _LOGGING_CONFIGURED = True
     return log_dir

@@ -62,7 +62,9 @@ if __name__ == "__main__":
         pos=START_POS, 
         comm=comm,
         idle_time_buffer=ILDE_TIME_BUFFER,
-        action_timeout=ACTION_TIMEOUT
+        action_timeout=ACTION_TIMEOUT,
+        USELIDAR=USELIDAR
+
     )
     #Position of front of robot (Not centered around codeuses) when pushing noisette, where camera is checked 
     PUSH_POSITIONS = [
@@ -101,15 +103,7 @@ if __name__ == "__main__":
     root.add_child(Setup(name="setup", order=ORDER, PUSH_POSITIONS=PUSH_POSITIONS, PUSH_DISTANCES=PUSH_DISTANCES, USECAMERA=USECAMERA, robot=robot))
 
     sequence_strategie = py_trees.composites.Sequence("sequence_strategie", memory=False)
-    
-    #--- Lidar ---
-    fallback_lidar = py_trees.composites.Selector("lidar_fallback", memory=True)
-    fallback_lidar.add_child(CheckLidar(name="check_lidar", robot=robot))
-    fallback_lidar.add_child(Stop(name="stop_for_lidar", robot=robot))
-    
-    if USELIDAR:
-        sequence_strategie.add_child(fallback_lidar)
-    
+        
     #--- Main Strategy ---
     procedure_limited_time = py_trees.composites.Sequence("procedure_limited_time", memory=True)
     procedure_limited_time.add_child(CheckTime(name="check_time_under_limit", robot=robot, end_time=TIMEGOBACK))

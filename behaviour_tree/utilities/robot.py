@@ -15,7 +15,7 @@ class Robot:
     HEIGHT=175
     DISTANCE_CODEUSES = 54
     
-    def __init__(self, startPos, comm, idle_time_buffer=0.5, action_timeout=5, USE_GRAPH=True):
+    def __init__(self, startPos, comm, idle_time_buffer=0.5, action_timeout=5, USE_LIDAR=False, USE_GRAPH=True):
         setup_logging()
         self.pos=startPos
         self.commPosOffset=Position(0,0,0)
@@ -27,6 +27,7 @@ class Robot:
         self.start_time = time.time()
         self.logger = logging.getLogger("Robot")
         self.graph=GridGraph(AREA_WIDTH,AREA_HEIGHT,scale=10, rotate_buffer=Robot.HEIGHT//2) if USE_GRAPH else None
+        self.USE_LIDAR = USE_LIDAR
         if USE_GRAPH:
             self.comm.link_frobidden(self.graph.forbidden)
             self.graph.addForbidden(600-Robot.WIDTH//2,2400+Robot.WIDTH//2,0,450+Robot.WIDTH//2) #forbidden zone pamis
@@ -56,21 +57,27 @@ class Robot:
             Position(1750, 550, 0)
 
         ]
-    
     def startBT(self, root, robot):
         behaviour_tree = py_trees.trees.BehaviourTree(root=root)
         self.logger.debug(py_trees.display.unicode_tree(root=root))
         behaviour_tree.setup(timeout=15)
 
+        self.last = None
 
         def post_tick_handler(tree: py_trees.trees.BehaviourTree) -> None:
-            """Print tree and check for completion."""
-            self.logger.debug(py_trees.display.unicode_tree(root=tree.root, show_status=True))
+            """Print tree only if status or structure changed, and check for completion."""
+            
+            current = py_trees.display.unicode_tree(root=tree.root, show_status=True)
+            
+            if current != self.last:
+                self.logger.info(f"\n{current}")
+                self.last = current
             
             if tree.root.status in [py_trees.common.Status.SUCCESS, py_trees.common.Status.FAILURE]:
-                self.logger.debug(f"Finished | Status: {tree.root.status}")
+                self.logger.info(f"Finished | Status: {tree.root.status}")
                 raise SystemExit                
-        py_trees.logging.level = py_trees.logging.Level.DEBUG
+
+        py_trees.logging.level = py_trees.logging.Level.INFO
 
         try:
             behaviour_tree.tick_tock(
@@ -80,8 +87,7 @@ class Robot:
                 post_tick_handler=post_tick_handler
             )
         except KeyboardInterrupt:
-            behaviour_tree.interrupt()
-    
+            behaviour_tree.interrupt()    
     def nutBoxGroupForbidden(self):
         for noisette in self.noisettes:
             xmin,xmax,ymin,ymax=noisette.getForbiddenZone(buffer=Robot.WIDTH//2+10)
@@ -161,16 +167,16 @@ class Robot:
         return is_idle #check if actions empty
 
 class RobotChasseNeige(Robot):
-    def __init__(self, pos, comm, idle_time_buffer=0.5, action_timeout=5, USE_GRAPH=True):
-        super().__init__(pos, comm, idle_time_buffer, action_timeout, USE_GRAPH)
+    def __init__(self, pos, comm, idle_time_buffer=0.5, action_timeout=5, USELIDAR=False, USE_GRAPH=True):
+        super().__init__(pos, comm, idle_time_buffer, action_timeout, USELIDAR, USE_GRAPH)
 
     def getNutBoxPos(self):
         self.update()
         return self.pos.forward(Robot.HEIGHT//2)
 
 class RobotMagicoBus(Robot):
-    def __init__(self, pos, comm, idle_time_buffer=0.5, action_timeout=5, USE_GRAPH=True):
-        super().__init__(pos, comm, idle_time_buffer, action_timeout, USE_GRAPH)
+    def __init__(self, pos, comm, idle_time_buffer=0.5, action_timeout=5, USELIDAR=False, USE_GRAPH=True):
+        super().__init__(pos, comm, idle_time_buffer, action_timeout, USELIDAR, USE_GRAPH)
         
     def getNutBoxPos(self):
         self.update()

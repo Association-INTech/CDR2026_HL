@@ -157,16 +157,36 @@ class Action(py_trees.behaviour.Behaviour):
     def __init__(self, name: str, robot):
         super().__init__(name)
         self.robot = robot
-        
+        self.is_stopped = False
+        self.uselidar = self.robot.USE_LIDAR
+
     def initialise(self):
         self.start_time=time.time()
 
+    def is_obstacle(self):
+        pos=self.robot.getPos()
+        return self.robot.comm.lidar(pos)
+    
     def update(self):
+        pos=self.robot.getPos()
+        if self.robot.USE_LIDAR:
+            if self.is_obstacle():
+                self.is_stopped = True
+                self.robot.comm.pause()
+                logger.info("Lidar: Obstacle detected")
+                return py_trees.common.Status.RUNNING
+            elif self.is_stopped:
+                self.robot.comm.resume()
+                logger.info("Lidar: Obstacle cleared, resuming action")
+                self.is_stopped = False
+                self.start_time = time.time()  # reset timer after obstacle is cleared
+                return py_trees.common.Status.RUNNING
+
         if time.time() - self.start_time > self.robot.action_timeout:
-            logger.debug(f"{self.__class__.__name__} action timeout in {time.time() - self.start_time:.2f}s")
+            logger.info(f"{self.__class__.__name__} action timeout in {time.time() - self.start_time:.2f}s")
             return py_trees.common.Status.FAILURE
         if self.robot.is_idle() and time.time() - self.start_time > self.robot.idle_time_buffer:
-            logger.debug(f"{self.__class__.__name__} finished action")
+            logger.info(f"{self.__class__.__name__} finished action")
             time.sleep(2)
             return py_trees.common.Status.SUCCESS
         return py_trees.common.Status.RUNNING
@@ -175,7 +195,7 @@ class Rotate(Action):
     """Rotate robot by a given angle"""
 
     def __init__(self, name: str, robot, value: float) -> None:
-        super().__init__(name,robot=robot)
+        super().__init__(name, robot=robot)
         self.angle = value
 
     def initialise(self):
@@ -186,7 +206,7 @@ class Move(Action):
     """Move robot forward by a given distance"""
 
     def __init__(self, name: str, robot, value: float) -> None:
-        super().__init__(name,robot=robot)
+        super().__init__(name, robot=robot)
         self.distance = value
 
     def initialise(self):
@@ -196,7 +216,7 @@ class Move(Action):
 
 class TopBarrier(Action):
     def __init__(self, name: str, robot, state: bool) -> None:
-        super().__init__(name,robot=robot)
+        super().__init__(name, robot=robot)
         self.state = state
 
     def initialise(self):
@@ -206,7 +226,7 @@ class TopBarrier(Action):
 
 class BottomBarrier(Action):
     def __init__(self, name: str, robot, state: bool) -> None:
-        super().__init__(name,robot=robot)
+        super().__init__(name, robot=robot)
         self.state = state
 
     def initialise(self):
@@ -303,7 +323,7 @@ class CheckTime(py_trees.behaviour.Behaviour):
         logger.debug(f"Time: {elapsed:.2f}s elapsed")
         if elapsed < self.end_time:
             return py_trees.common.Status.SUCCESS
-        logger.debug(f"Time limit reached: {elapsed:.2f}s elapsed, limit was {self.end_time}s")
+        logger.info(f"Time limit reached: {elapsed:.2f}s elapsed, limit was {self.end_time}s")
         return py_trees.common.Status.FAILURE
 
 

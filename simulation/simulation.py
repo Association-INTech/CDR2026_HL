@@ -143,7 +143,7 @@ class SimRobot():
         #self.clamp_to_bounds()
         self.move_remaining -= abs(step)
 
-        print(f"Step: {step}")
+        #print(f"Step: {step}")
 
         collide = self.collidelistallNutBoxGroup(groupList)
         for i in collide:

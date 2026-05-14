@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+from shutil import move
 import time
 import struct
 import can
@@ -9,18 +10,20 @@ import isotp
 class CanBus:
 
     reg_asserv = {
-    "move" : (0, "<Bd"),
-    "rotate" : (1, "<Bd"),
-    "set_pos" : (2, "<Bdd"),
-    "stop" : (3, "<B"),
-    # limite
-    "is_idle" : (18, "<B?"),
-    "get_pos" : (17, "<Bddd")
+        "move": (0, "<Bd"),
+        "rotate": (1, "<Bd"),
+        "set_pos": (2, "<Bdd"),
+        "stop": (3, "<B"),
+        "pause": (4, "<B"),
+        "resume": (5, "<B"),
+        # limite
+        "is_idle": (18, "<B?"),
+        "get_pos": (17, "<Bddd"),
     }
 
-    reg_action = {
-        "lift" : (0, "<BBBBB")
-    }
+    reg_action = {"lift": (0, "<BBBBB")}
+
+
 
     limite = 16 # de 0 à 16 les messages de send et à partir de 16 request
 
