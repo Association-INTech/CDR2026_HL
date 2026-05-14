@@ -179,6 +179,7 @@ class Action(py_trees.behaviour.Behaviour):
                 self.robot.comm.resume()
                 logger.info("Lidar: Obstacle cleared, resuming action")
                 self.is_stopped = False
+                self.start_time = time.time()  # reset timer after obstacle is cleared
                 return py_trees.common.Status.RUNNING
 
         if time.time() - self.start_time > self.robot.action_timeout:
