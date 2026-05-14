@@ -21,7 +21,8 @@ class Setup(py_trees.behaviour.Behaviour):
         self.USECAMERA=USECAMERA
 
     def update(self):
-                
+        self.robot.comm.resume()
+  
         if self.blackboard.side: # left
             self.blackboard.nutBoxOrder=self.order
             for i in range(len(self.robot.noisettes)):
