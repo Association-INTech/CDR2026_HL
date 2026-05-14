@@ -16,7 +16,7 @@ class Strat02534:
         nb_4 = nb_list[4] * 50 - 20
         nb_5 = nb_list[5] * 50 - 20
 
-        move_nb_zero = 450
+        move_nb_zero = 460
         if nb_0 > 0:
             strat = [
                 f"move {move_nb_zero + nb_0}",
@@ -34,38 +34,38 @@ class Strat02534:
         ]
 
         if nb_2 > 0:
-            strat += [f"move {310 + nb_2}", f"move -{310 + nb_2}"]
+            strat += [f"move {340 + nb_2}", f"move -{340 + nb_2}"]
         else:
-            strat += ["move 310", "move -310"]
+            strat += ["move 340", "move -340"]
 
         if nb_5 > 0:
-            strat += [f"move -{340 + nb_5}", f"move {340 + nb_5}"]
+            strat += [f"move -{320 + nb_5}", f"move {320 + nb_5}"]
         else:
-            strat += ["move -340", "move 340"]
+            strat += ["move -320", "move 320"]
 
         strat += [
             f"rotate {gauche}",
-            "move 430",
+            "move 480",
             f"rotate {droite}",
         ]
 
         if nb_3 > 0:
-            strat += [f"move {360 + nb_3}", f"move -{360 + nb_3}"]
+            strat += [f"move {460 + nb_3}", f"move -{460 + nb_3}"]
         else:
-            strat += ["move 360", "move -360"]
+            strat += ["move 460", "move -460"]
 
         if nb_4 > 0:
-            strat += [f"move -{480 + nb_4}", f"move {480 + nb_4}"]
+            strat += [f"move -{580 + nb_4}", f"move {580 + nb_4}"]
         else:
-            strat += ["move -480", "move 480"]
+            strat += ["move -580", "move 580"]
 
         strat += [
             f"rotate {droite}",
-            "move 800",
+            "move 860",
             f"rotate {gauche}",
             "move 1150",
             f"rotate {droite}",
-            "move 620",
+            "move 700",
         ]
 
         return strat

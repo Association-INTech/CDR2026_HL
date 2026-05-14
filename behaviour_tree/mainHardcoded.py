@@ -113,7 +113,7 @@ if __name__ == "__main__":
     USELIDAR = True
     USECAMERA = False
     ILDE_TIME_BUFFER = (
-        0.5  # seconds minimum to wait after each action before starting the next one
+        2  # seconds minimum to wait after each action before starting the next one
     )
     ACTION_TIMEOUT = 1000000  # seconds to wait before considering an action failed
 
