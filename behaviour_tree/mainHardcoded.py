@@ -24,6 +24,7 @@ from behaviour_tree.behaviours.strategieChasseNeige import (
     ProcedureHardCoded,
 )
 from behaviour_tree.strat_hardcoded.strat_2_3_0 import Strat230
+from behaviour_tree.strat_hardcoded.strat_0_2_5_3_4 import Strat02534
 from behaviour_tree.strat_hardcoded.strat_2_3_1_0 import Strat2310
 
 from behaviour_tree.behaviours.basicBehaviours import (
@@ -46,18 +47,18 @@ parser = argparse.ArgumentParser(
     description="Run robot controller in Sim or Hardware mode."
 )
 parser.add_argument("--sim", action="store_true", help="Run in simulation mode")
-parser.add_argument("--nb0", type=int, default=4, help="Noise box count for slot 0.")
-parser.add_argument("--nb1", type=int, default=4, help="Noise box count for slot 1.")
-parser.add_argument("--nb2", type=int, default=4, help="Noise box count for slot 2.")
-parser.add_argument("--nb3", type=int, default=4, help="Noise box count for slot 3.")
-parser.add_argument("--nb4", type=int, default=4, help="Noise box count for slot 4.")
-parser.add_argument("--nb5", type=int, default=4, help="Noise box count for slot 5.")
-parser.add_argument("--nb6", type=int, default=4, help="Noise box count for slot 6.")
-parser.add_argument("--nb7", type=int, default=4, help="Noise box count for slot 7.")
+parser.add_argument("--nb0", type=int, default=4, help="box count to push for pantry 0")
+parser.add_argument("--nb1", type=int, default=4, help="box count to push for pantry 1.")
+parser.add_argument("--nb2", type=int, default=4, help="box count to push for pantry 2.")
+parser.add_argument("--nb3", type=int, default=4, help="box count to push for pantry 3.")
+parser.add_argument("--nb4", type=int, default=4, help="box count to push for pantry 4.")
+parser.add_argument("--nb5", type=int, default=4, help="box count to push for pantry 5.")
+parser.add_argument("--nb6", type=int, default=4, help="box count to push for pantry 6.")
+parser.add_argument("--nb7", type=int, default=4, help="box count to push for pantry 7.")
 parser.add_argument(
     "--strat",
-    choices=["2_3_0", "2_3_1_0"],
-    default="2_3_0",
+    choices=["230", "2310", "02534"],
+    default="230",
     help="Choose the hard-coded strategy to run.",
 )
 
@@ -66,8 +67,9 @@ SIMULATION = args.sim
 strategy = args.strat
 
 strategies = {
-    "2_3_0": Strat230,
-    "2_3_1_0": Strat2310,
+    "230": Strat230,
+    "2310": Strat2310,
+    "02534": Strat02534,
 }
 current_strategy = strategies[strategy]
 pose_depart = current_strategy.get_start_pos(RobotChasseNeige)
@@ -106,7 +108,7 @@ if __name__ == "__main__":
     logger.info(
         f"Start position: {START_POS}, Order: {ORDER}, Go-back time limit: {TIMEGOBACK}s"
     )
-    logger.info(f"Strategy: {strategy}, NB counts: {[NB_0, NB_1, NB_2, NB_3, NB_4, NB_5, NB_6, NB_7]}")
+    logger.info(f"Strategy: {strategy}, NB counts: {nb_list}")
 
     if SIMULATION:
         simStartPos = START_POS.getSymmetric(AREA_WIDTH)
