@@ -26,5 +26,8 @@ def setup_logging(log_filename: str = "py_trees.log") -> Path:
         ],
         force=True,
     )
+    
+    logging.getLogger("hokuyo").setLevel(logging.WARNING)
+    
     _LOGGING_CONFIGURED = True
     return log_dir
