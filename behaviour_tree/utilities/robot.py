@@ -167,16 +167,16 @@ class Robot:
         return is_idle #check if actions empty
 
 class RobotChasseNeige(Robot):
-    def __init__(self, pos, comm, idle_time_buffer=0.5, action_timeout=5, USE_GRAPH=True):
-        super().__init__(pos, comm, idle_time_buffer, action_timeout, USE_GRAPH)
+    def __init__(self, pos, comm, idle_time_buffer=0.5, action_timeout=5, USELIDAR=False, USE_GRAPH=True):
+        super().__init__(pos, comm, idle_time_buffer, action_timeout, USELIDAR, USE_GRAPH)
 
     def getNutBoxPos(self):
         self.update()
         return self.pos.forward(Robot.HEIGHT//2)
 
 class RobotMagicoBus(Robot):
-    def __init__(self, pos, comm, idle_time_buffer=0.5, action_timeout=5, USE_GRAPH=True):
-        super().__init__(pos, comm, idle_time_buffer, action_timeout, USE_GRAPH)
+    def __init__(self, pos, comm, idle_time_buffer=0.5, action_timeout=5, USELIDAR=False, USE_GRAPH=True):
+        super().__init__(pos, comm, idle_time_buffer, action_timeout, USELIDAR, USE_GRAPH)
         
     def getNutBoxPos(self):
         self.update()
