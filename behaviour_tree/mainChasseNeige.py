@@ -62,7 +62,9 @@ if __name__ == "__main__":
         pos=START_POS, 
         comm=comm,
         idle_time_buffer=ILDE_TIME_BUFFER,
-        action_timeout=ACTION_TIMEOUT
+        action_timeout=ACTION_TIMEOUT,
+        USELIDAR=USELIDAR
+
     )
     #Position of front of robot (Not centered around codeuses) when pushing noisette, where camera is checked 
     PUSH_POSITIONS = [
