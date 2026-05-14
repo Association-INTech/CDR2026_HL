@@ -37,7 +37,7 @@ else:
 
 if __name__ == "__main__":
     DISTANCE_CODEUSES = 54
-    START_POS = Position(320, RobotChasseNeige.DISTANCE_CODEUSES, 90)
+    START_POS = Position(320, 250 - RobotChasseNeige.HEIGHT + RobotChasseNeige.DISTANCE_CODEUSES, 90)
     ORDER = [0] #for left side
     TIMEGOBACK = 80 # seconds until robot should start going back to start position
     USELIDAR = True
@@ -134,10 +134,27 @@ if __name__ == "__main__":
     sequence_main.add_child(Rotate(name="Rotate", value=90, robot=robot))
     sequence_main.add_child(Move(name="Move3", value=520, robot = robot))
     """
-    stat= [
-        "move 1000",
-        "rotate 180",
-        "move 1000"
+    stat = [
+        "move 770",
+        "move -250",
+        "rotate 270",
+        "move 1500",
+        "rotate 90",
+        "move 350",
+        "rotate 90",
+        "move 610",
+        "move -610",
+        "rotate 270",
+        "move 630",
+        "rotate 90",
+        "move 430",
+        "move -430",
+        "rotate 90",
+        "move 350+630",
+        "rotate 270",
+        "move 1500",
+        "rotate 90",
+        "move 520"
     ]
     sequence_main.add_child(ProcedureHardCoded(name="ProcedureHardCoded", strategy=stat, robot=robot))
     
