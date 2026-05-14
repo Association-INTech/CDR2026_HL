@@ -65,7 +65,7 @@ class Strat02534:
             f"rotate {gauche}",
             "move 1150",
             f"rotate {droite}",
-            "move 620",mmmmmmmpç_çik;                                                                                               nnnnnnn      ""
+            "move 620",
         ]
 
         return strat
