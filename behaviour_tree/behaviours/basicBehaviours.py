@@ -178,7 +178,9 @@ class Action(py_trees.behaviour.Behaviour):
                 self.robot.comm.resume()
                 logger.info("Lidar: Obstacle cleared, resuming action")
                 self.is_stopped = False
-        
+            
+            self.robot.comm.resume() #test spam resume
+
         if time.time() - self.start_time > self.robot.action_timeout:
             logger.info(f"{self.__class__.__name__} action timeout in {time.time() - self.start_time:.2f}s")
             return py_trees.common.Status.FAILURE
