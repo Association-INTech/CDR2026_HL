@@ -140,10 +140,6 @@ if __name__ == "__main__":
     sequence_strategie = py_trees.composites.Sequence(
         "sequence_strategie", memory=False
     )
-    fallback_lidar = py_trees.composites.Selector("lidar_fallback", memory=True)
-
-    fallback_lidar.add_child(CheckLidar(name="check_time_for_lidar", robot=robot))
-    fallback_lidar.add_child(Stop(name="stop_for_lidar", robot=robot))
 
     if USELIDAR:
         robot.start_lidar_monitor(period=0.05)
