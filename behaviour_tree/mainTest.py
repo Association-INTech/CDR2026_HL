@@ -45,7 +45,7 @@ else:
     GAUCHE = 90
     DROITE = 270
 
-strategy = "2_3_1_0"  # 2_3_1_0 ou 2_3_0
+strategy = "2_3_0"  # 2_3_1_0 ou 2_3_0
 
 
 NB_0 = 0
@@ -179,13 +179,6 @@ if __name__ == "__main__":
     sequence_strategie = py_trees.composites.Sequence(
         "sequence_strategie", memory=False
     )
-    fallback_lidar = py_trees.composites.Selector("lidar_fallback", memory=True)
-
-    fallback_lidar.add_child(CheckLidar(name="check_time_for_lidar", robot=robot))
-    fallback_lidar.add_child(Stop(name="stop_for_lidar", robot=robot))
-
-    if USELIDAR:
-        sequence_strategie.add_child(fallback_lidar)
 
     sequence_main = py_trees.composites.Sequence("sequence_main", memory=True)
 
