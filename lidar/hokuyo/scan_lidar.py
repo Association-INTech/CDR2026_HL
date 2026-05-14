@@ -12,7 +12,7 @@ angle = angle_limit * np.pi / 180
 distance_limite = 100
 waiting_time = 3  # secondes
 incertitude = 10  # millimètre
-ref_lidar_angle = 0  # orientation du radar par rapport au robot
+ref_lidar_angle = -np.pi / 2  # orientation du radar par rapport au robot
 frequency = 3  # nombre de ratissage pour le boucle != de la fréquence de rotation
 
 
