@@ -140,7 +140,10 @@ class CommunicationCan(Comm):
         if self.bus.reg != reg_asserv:
             self.switchBus("asserv")
         logger.debug("CAN: is ildle?: %s", id)
-        return self._safe_request("is_idle",default=False)
+        is_debug = self._safe_request("is_idle",default=False)
+        if len(is_debug) > 0:
+            return is_debug[0]
+        return False
 
     
     def get_position(self):

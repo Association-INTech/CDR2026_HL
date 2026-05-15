@@ -169,13 +169,13 @@ class Action(py_trees.behaviour.Behaviour):
         return self.robot.comm.lidar(pos)
 
     def update(self):
-        pos=self.robot.getPos()
+        pos = self.robot.getPos()
         is_idle = self.robot.is_idle()
-        ctime= time.time()
+        ctime = time.time()
         logger.info(f"is Idle: {is_idle}, time: {ctime - self.start_time}")
         
-        MATCH_TIME_LIMIT =100
-        if self.robot.start_time - ctime > MATCH_TIME_LIMIT:
+        MATCH_TIME_LIMIT = 100
+        if ctime - self.robot.start_time > MATCH_TIME_LIMIT:
             self.robot.comm.stop()
             logging.critical("Time limit Stopping")
             return py_trees.common.Status.FAILURE
