@@ -174,7 +174,7 @@ class Action(py_trees.behaviour.Behaviour):
         ctime = time.time()
         logger.info(f"is Idle: {is_idle}, time: {ctime - self.start_time}")
         
-        MATCH_TIME_LIMIT = 100
+        MATCH_TIME_LIMIT = 97
         if ctime - self.robot.start_time > MATCH_TIME_LIMIT:
             self.robot.comm.stop()
             logging.critical("Time limit Stopping")
@@ -186,6 +186,8 @@ class Action(py_trees.behaviour.Behaviour):
                 logger.info("Lidar: Obstacle detected")
                 return py_trees.common.Status.RUNNING
             elif self.is_stopped:
+                self.robot.comm.resume()
+                self.robot.comm.resume()
                 self.robot.comm.resume()
                 logger.info("Lidar: Obstacle cleared, resuming action")
                 self.is_stopped = False
