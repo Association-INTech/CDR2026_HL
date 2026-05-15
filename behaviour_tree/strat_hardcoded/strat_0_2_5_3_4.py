@@ -2,13 +2,16 @@ from utilities.position import Position
 
 
 class Strat02534:
+    
+    @staticmethod
     def get_start_pos(robot_cls) -> Position:
         return Position(
             130 + robot_cls.WIDTH / 2,
             540 - robot_cls.DISTANCE_CODEUSES - robot_cls.HEIGHT,
             90,
         )
-
+        
+    @staticmethod
     def get_strat(gauche: int, droite: int, nb_list: list[int]) -> list[str]:
         nb_0 = nb_list[0] * 50 - 20
         nb_2 = nb_list[2] * 50 - 20
