@@ -68,7 +68,7 @@ class Strat02534:
 
         strat += [
             f"rotate {droite}",
-            "move 1060",
+            "move 860",
             f"rotate {gauche}",
             "move 1300",
             f"rotate {droite}",
