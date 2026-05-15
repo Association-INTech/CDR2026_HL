@@ -50,7 +50,7 @@ class CommunicationCan(Comm):
         try:
             response = self.bus.request(command, *args)
             if response is not None:
-                logger.log(f"response: {repr(response)}")
+                logger.info(f"response: {repr(response)}")
                 return response
 
             logger.error("CAN ERROR: Empty response for: %s", command)
