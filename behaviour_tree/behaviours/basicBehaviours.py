@@ -199,7 +199,7 @@ class Action(py_trees.behaviour.Behaviour):
             logger.info(f"{self.__class__.__name__} is idle, waiting for idle_time_buffer {ctime - self.start_time:.2f}s")
             return py_trees.common.Status.RUNNING
 
-        if self.robot.is_idle() :
+        if is_idle :
             if self.start_time_end_buffer is None:
                 logger.info(f"{self.__class__.__name__} finished action")
                 self.start_time_end_buffer = ctime
