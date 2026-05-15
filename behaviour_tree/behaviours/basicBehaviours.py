@@ -170,6 +170,7 @@ class Action(py_trees.behaviour.Behaviour):
 
     def update(self):
         pos=self.robot.getPos()
+        logger.info(self.robot.is_idle())
         
         MATCH_TIME_LIMIT =100
         if self.robot.start_time - time.time() > MATCH_TIME_LIMIT:
