@@ -39,7 +39,7 @@ from behaviour_tree.behaviours.basicBehaviours import (
 )
 import argparse
 
-
+ORANGE = True
 GAUCHE = 270
 DROITE = 360 - GAUCHE
 
@@ -196,7 +196,7 @@ if __name__ == "__main__":
 
     # ------------------------------------------------------------------------------------------------------------------------
 
-    strat = current_strategy.get_strat(GAUCHE, DROITE, nb_list)
+    strat = current_strategy.get_strat(GAUCHE, DROITE, nb_list, ORANGE)
 
     sequence_main.add_child(
         ProcedureHardCoded(name="ProcedureHardCoded", strategy=strat, robot=robot)

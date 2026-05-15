@@ -11,14 +11,16 @@ class Strat02534:
         )
 
     @staticmethod
-    def get_strat(gauche: int, droite: int, nb_list: list[int]) -> list[str]:
+    def get_strat(
+        gauche: int, droite: int, nb_list: list[int], orange=True
+    ) -> list[str]:
         nb_0 = nb_list[0] * 50 - 20
         nb_2 = nb_list[2] * 50 - 20
         nb_3 = nb_list[3] * 50 - 20
         nb_4 = nb_list[4] * 50 - 20
         nb_5 = nb_list[5] * 50 - 20
 
-        move_nb_zero = 460
+        move_nb_zero = 510
         if nb_0 > 0:
             strat = [
                 f"move {move_nb_zero + nb_0}",
@@ -27,9 +29,15 @@ class Strat02534:
         else:
             strat = [f"move {move_nb_zero}"]
 
+        if orange:
+            move = 1270
+
+        else:
+            move = 1220
+
         strat += [
             f"rotate {gauche}",
-            "move 1220",
+            f"move {move}",
             f"rotate {droite}",
             "move 500",
             f"rotate {droite}",
@@ -51,7 +59,10 @@ class Strat02534:
 
         # nb_3 and nb_4
 
-        nb_3_dist = 460
+        if orange:
+            nb_3_dist = 360
+        else:
+            nb_3_dist = 460
         nb_4_dist = 480
 
         strat += [
