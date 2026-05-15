@@ -159,6 +159,7 @@ class Action(py_trees.behaviour.Behaviour):
         self.robot = robot
         self.is_stopped = False
         self.uselidar = self.robot.USE_LIDAR
+        self.start_time_end_buffer = None
 
     def initialise(self):
         self.start_time=time.time()
@@ -166,9 +167,15 @@ class Action(py_trees.behaviour.Behaviour):
     def is_obstacle(self):
         pos=self.robot.getPos()
         return self.robot.comm.lidar(pos)
-    
+
     def update(self):
         pos=self.robot.getPos()
+        
+        MATCH_TIME_LIMIT =100
+        if self.robot.start_time - time.time() > MATCH_TIME_LIMIT:
+            self.robot.comm.stop()
+            logging.critical("Time limit Stopping")
+            return py_trees.common.Status.FAILURE
         if self.robot.USE_LIDAR:
             if self.is_obstacle():
                 self.is_stopped = True
@@ -181,13 +188,21 @@ class Action(py_trees.behaviour.Behaviour):
                 self.is_stopped = False
                 self.start_time = time.time()  # reset timer after obstacle is cleared
                 return py_trees.common.Status.RUNNING
-
         if time.time() - self.start_time > self.robot.action_timeout:
             logger.info(f"{self.__class__.__name__} action timeout in {time.time() - self.start_time:.2f}s")
             return py_trees.common.Status.FAILURE
-        if self.robot.is_idle() and time.time() - self.start_time > self.robot.idle_time_buffer:
-            logger.info(f"{self.__class__.__name__} finished action")
-            time.sleep(2)
+
+        if time.time() - self.start_time < self.robot.idle_time_buffer:
+            logger.debug(f"{self.__class__.__name__} is idle, waiting for idle_time_buffer")
+            return py_trees.common.Status.RUNNING
+
+        if self.robot.is_idle() :
+            if self.start_time_end_buffer is None:
+                logger.info(f"{self.__class__.__name__} finished action")
+                self.start_time_end_buffer = time.time()
+                return py_trees.common.Status.RUNNING
+            elif time.time() - self.start_time_end_buffer < self.robot.end_time_buffer:
+                return py_trees.common.Status.RUNNING
             return py_trees.common.Status.SUCCESS
         return py_trees.common.Status.RUNNING
     
@@ -261,6 +276,7 @@ class Start(py_trees.behaviour.Behaviour):
         self.robot = robot
 
     def update(self):
+        self.robot.stop()
         tirette = self.robot.comm.isTierettePulled()
         if tirette:
             self.robot.start_time = time.time()

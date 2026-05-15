@@ -15,13 +15,14 @@ class Robot:
     HEIGHT=175
     DISTANCE_CODEUSES = 54
     
-    def __init__(self, startPos, comm, idle_time_buffer=0.5, action_timeout=5, USE_LIDAR=False, USE_GRAPH=True):
+    def __init__(self, startPos, comm, idle_time_buffer=0.5, end_time_buffer=0.5, action_timeout=5, USE_LIDAR=False, USE_GRAPH=True):
         setup_logging()
         self.pos=startPos
         self.commPosOffset=Position(0,0,0)
         self.comm=comm
         self.actions=[]
         self.idle_time_buffer = idle_time_buffer # Time buffer to consider the robot idle after an action
+        self.end_time_buffer = end_time_buffer # Time buffer to confirm action end after idle detected
         self.action_timeout = action_timeout # Timeout for action considered failed
         self.__countID=0 #variable de classe pour avoir un id
         self.start_time = time.time()
@@ -169,16 +170,16 @@ class Robot:
         return is_idle #check if actions empty
 
 class RobotChasseNeige(Robot):
-    def __init__(self, pos, comm, idle_time_buffer=0.5, action_timeout=5, USELIDAR=False, USE_GRAPH=True):
-        super().__init__(pos, comm, idle_time_buffer, action_timeout, USELIDAR, USE_GRAPH)
+    def __init__(self, pos, comm, idle_time_buffer=0.5, end_time_buffer=0.5, action_timeout=5, USELIDAR=False, USE_GRAPH=True):
+        super().__init__(pos, comm, idle_time_buffer, end_time_buffer, action_timeout, USELIDAR, USE_GRAPH)
 
     def getNutBoxPos(self):
         self.update()
         return self.pos.forward(Robot.HEIGHT//2)
 
 class RobotMagicoBus(Robot):
-    def __init__(self, pos, comm, idle_time_buffer=0.5, action_timeout=5, USELIDAR=False, USE_GRAPH=True):
-        super().__init__(pos, comm, idle_time_buffer, action_timeout, USELIDAR, USE_GRAPH)
+    def __init__(self, pos, comm, idle_time_buffer=0.5, end_time_buffer=0.5, action_timeout=5, USELIDAR=False, USE_GRAPH=True):
+        super().__init__(pos, comm, idle_time_buffer, end_time_buffer, action_timeout, USELIDAR, USE_GRAPH)
         
     def getNutBoxPos(self):
         self.update()
