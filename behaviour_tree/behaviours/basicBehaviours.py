@@ -121,7 +121,7 @@ class GoToLoc(py_trees.decorators.PassThrough):
                 return (Rotate,diff.angle)
 
         try:
-            path=self.robot.graph.getShortestPathPos(currentPos,targetPos)
+            path = self.robot.graph.getShortestPathPos(currentPos,targetPos)
         except Exception as e:
             logger.error(f"Cannot find path from {currentPos} to {targetPos}: {e}")
             return
@@ -135,10 +135,10 @@ class GoToLoc(py_trees.decorators.PassThrough):
         prev_class =  None
         total_value = 0
         for i in range(len(path)-1):
-            step,value=getStep(path[i],path[i+1])
+            step,value = getStep(path[i],path[i+1])
             raw_steps.append((step,value))
 
-            if prev_class==step:
+            if prev_class == step:
                 total_value+=value
             else:
                 if prev_class is not None:
@@ -165,7 +165,7 @@ class Action(py_trees.behaviour.Behaviour):
         self.start_time=time.time()
 
     def is_obstacle(self):
-        pos=self.robot.getPos()
+        pos = self.robot.getPos()
         return self.robot.comm.lidar(pos)
 
     def update(self):
@@ -219,7 +219,7 @@ class Rotate(Action):
 
     def initialise(self):
         super().initialise()
-        self.id=self.robot.start_rotate(self.angle)
+        self.id = self.robot.start_rotate(self.angle)
                
 class Move(Action):
     """Move robot forward by a given distance"""
@@ -230,7 +230,7 @@ class Move(Action):
 
     def initialise(self):
         super().initialise()
-        self.id=self.robot.start_move(self.distance)
+        self.id = self.robot.start_move(self.distance)
 
 
 class TopBarrier(Action):
@@ -240,7 +240,7 @@ class TopBarrier(Action):
 
     def initialise(self):
         super().initialise()
-        self.id=self.robot.top_barrier(self.state)
+        self.id = self.robot.top_barrier(self.state)
 
 
 class BottomBarrier(Action):

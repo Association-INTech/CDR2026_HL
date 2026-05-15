@@ -60,7 +60,7 @@ class ProcedureHardCoded(py_trees.decorators.PassThrough):
     def initialise(self):
         hardCodedBehaviours =[]
         for step in self.strategy:
-            action,value_init=step.split()                
+            action, value_init = step.split()                
             match action:
                 case "move" | "d":
                     value=eval(value_init)
