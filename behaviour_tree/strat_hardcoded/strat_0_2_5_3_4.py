@@ -32,7 +32,7 @@ class Strat02534:
             f"rotate {gauche}",
             "move 1220",
             f"rotate {droite}",
-            "move 500",
+            "move 450",
             f"rotate {droite}",
         ]
         
@@ -70,7 +70,7 @@ class Strat02534:
             f"rotate {droite}",
             "move 1060",
             f"rotate {gauche}",
-            "move 1150",
+            "move 1300",
             f"rotate {droite}",
             "move 700",
         ]
