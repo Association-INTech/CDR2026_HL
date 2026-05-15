@@ -32,25 +32,25 @@ class Strat02534:
             f"rotate {gauche}",
             "move 1220",
             f"rotate {droite}",
-            "move 450",
+            "move 350",
             f"rotate {droite}",
         ]
         
-        move_nb_2 = 290
+        move_nb_2 = 270
         if nb_2 > 0:
             strat += [f"move {move_nb_2 + nb_2}", f"move -{move_nb_2 + nb_2}"]
         else:
             strat += [f"move {move_nb_2}", f"move -{move_nb_2}"]
 
-        move_nb5 = 360
+        move_nb_5 = 360
         if nb_5 > 0:
-            strat += [f"move -{move_nb5 + nb_5}", f"move {move_nb5 + nb_5}"]
+            strat += [f"move -{move_nb_5 + nb_5}", f"move {move_nb_5 + nb_5}"]
         else:
-            strat += [f"move -{move_nb5}", f"move {move_nb5}"]
+            strat += [f"move -{move_nb_5}", f"move {move_nb_5}"]
 
         strat += [
             f"rotate {gauche}",
-            "move 530",
+            "move 550",
             f"rotate {droite}",
         ]
 
