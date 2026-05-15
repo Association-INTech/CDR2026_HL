@@ -170,7 +170,9 @@ class Action(py_trees.behaviour.Behaviour):
 
     def update(self):
         pos=self.robot.getPos()
-        logger.info(self.robot.is_idle())
+        is_idle = self.robot.is_idle()
+        time= time.time()
+        logger.info(f"is Idle: {is_idle}, time: {time - self.start_time}")
         
         MATCH_TIME_LIMIT =100
         if self.robot.start_time - time.time() > MATCH_TIME_LIMIT:
@@ -189,11 +191,11 @@ class Action(py_trees.behaviour.Behaviour):
                 self.is_stopped = False
                 self.start_time = time.time()  # reset timer after obstacle is cleared
                 return py_trees.common.Status.RUNNING
-        if time.time() - self.start_time > self.robot.action_timeout:
+        if time - self.start_time > self.robot.action_timeout:
             logger.info(f"{self.__class__.__name__} action timeout in {time.time() - self.start_time:.2f}s")
             return py_trees.common.Status.FAILURE
 
-        if time.time() - self.start_time < self.robot.idle_time_buffer:
+        if time - self.start_time < self.robot.idle_time_buffer:
             logger.info(f"{self.__class__.__name__} is idle, waiting for idle_time_buffer {time.time() - self.start_time:.2f}s")
             return py_trees.common.Status.RUNNING
 
@@ -202,7 +204,7 @@ class Action(py_trees.behaviour.Behaviour):
                 logger.info(f"{self.__class__.__name__} finished action")
                 self.start_time_end_buffer = time.time()
                 return py_trees.common.Status.RUNNING
-            elif time.time() - self.start_time_end_buffer < self.robot.end_time_buffer:
+            elif time - self.start_time_end_buffer < self.robot.end_time_buffer:
                 logger.info(f"{self.__class__.__name__} is waiting for end_time_buffer {time.time() - self.start_time_end_buffer:.2f}s")
                 return py_trees.common.Status.RUNNING
             return py_trees.common.Status.SUCCESS
