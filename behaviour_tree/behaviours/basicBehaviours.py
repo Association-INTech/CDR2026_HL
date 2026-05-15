@@ -193,7 +193,7 @@ class Action(py_trees.behaviour.Behaviour):
             return py_trees.common.Status.FAILURE
 
         if time.time() - self.start_time < self.robot.idle_time_buffer:
-            logger.debug(f"{self.__class__.__name__} is idle, waiting for idle_time_buffer")
+            logger.info(f"{self.__class__.__name__} is idle, waiting for idle_time_buffer {time.time() - self.start_time:.2f}s")
             return py_trees.common.Status.RUNNING
 
         if self.robot.is_idle() :
@@ -202,6 +202,7 @@ class Action(py_trees.behaviour.Behaviour):
                 self.start_time_end_buffer = time.time()
                 return py_trees.common.Status.RUNNING
             elif time.time() - self.start_time_end_buffer < self.robot.end_time_buffer:
+                logger.info(f"{self.__class__.__name__} is waiting for end_time_buffer {time.time() - self.start_time_end_buffer:.2f}s")
                 return py_trees.common.Status.RUNNING
             return py_trees.common.Status.SUCCESS
         return py_trees.common.Status.RUNNING
