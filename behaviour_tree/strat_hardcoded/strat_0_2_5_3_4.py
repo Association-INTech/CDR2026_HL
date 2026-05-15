@@ -2,7 +2,6 @@ from utilities.position import Position
 
 
 class Strat02534:
-    
     @staticmethod
     def get_start_pos(robot_cls) -> Position:
         return Position(
@@ -10,7 +9,7 @@ class Strat02534:
             540 - robot_cls.DISTANCE_CODEUSES - robot_cls.HEIGHT,
             90,
         )
-        
+
     @staticmethod
     def get_strat(gauche: int, droite: int, nb_list: list[int]) -> list[str]:
         nb_0 = nb_list[0] * 50 - 20
@@ -36,15 +35,13 @@ class Strat02534:
             f"rotate {droite}",
         ]
 
-        if nb_2 > 0:
-            strat += [f"move {340 + nb_2}", f"move -{340 + nb_2}"]
-        else:
-            strat += ["move 340", "move -340"]
-
-        if nb_5 > 0:
-            strat += [f"move -{320 + nb_5}", f"move {320 + nb_5}"]
-        else:
-            strat += ["move -320", "move 320"]
+        nb_2_dist = 340
+        nb_5_dist = 320
+        strat += [
+            f"move {nb_2_dist + nb_2}",
+            f"move -{nb_2_dist + nb_2 + nb_5_dist + nb_5}",
+            f"move {nb_5_dist + nb_5}",
+        ]
 
         strat += [
             f"rotate {gauche}",
@@ -52,15 +49,16 @@ class Strat02534:
             f"rotate {droite}",
         ]
 
-        if nb_3 > 0:
-            strat += [f"move {460 + nb_3}", f"move -{460 + nb_3}"]
-        else:
-            strat += ["move 460", "move -460"]
+        # nb_3 and nb_4
 
-        if nb_4 > 0:
-            strat += [f"move -{480 + nb_4}", f"move {480 + nb_4}"]
-        else:
-            strat += ["move -480", "move 480"]
+        nb_3_dist = 460
+        nb_4_dist = 480
+
+        strat += [
+            f"move {nb_3_dist + nb_3}",
+            f"move -{nb_3_dist + nb_3 + nb_4_dist + nb_4}",
+            f"move {nb_4_dist + nb_4}",
+        ]
 
         strat += [
             f"rotate {droite}",
