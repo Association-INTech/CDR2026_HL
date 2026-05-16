@@ -121,7 +121,7 @@ class GoToLoc(py_trees.decorators.PassThrough):
                 return (Rotate,diff.angle)
 
         try:
-            path=self.robot.graph.getShortestPathPos(currentPos,targetPos)
+            path = self.robot.graph.getShortestPathPos(currentPos,targetPos)
         except Exception as e:
             logger.error(f"Cannot find path from {currentPos} to {targetPos}: {e}")
             return
@@ -135,10 +135,10 @@ class GoToLoc(py_trees.decorators.PassThrough):
         prev_class =  None
         total_value = 0
         for i in range(len(path)-1):
-            step,value=getStep(path[i],path[i+1])
+            step,value = getStep(path[i],path[i+1])
             raw_steps.append((step,value))
 
-            if prev_class==step:
+            if prev_class == step:
                 total_value+=value
             else:
                 if prev_class is not None:
@@ -159,16 +159,26 @@ class Action(py_trees.behaviour.Behaviour):
         self.robot = robot
         self.is_stopped = False
         self.uselidar = self.robot.USE_LIDAR
+        self.start_time_end_buffer = None
 
     def initialise(self):
         self.start_time=time.time()
 
     def is_obstacle(self):
-        pos=self.robot.getPos()
+        pos = self.robot.getPos()
         return self.robot.comm.lidar(pos)
-    
+
     def update(self):
-        pos=self.robot.getPos()
+        pos = self.robot.getPos()
+        is_idle = self.robot.is_idle()
+        ctime = time.time()
+        logger.info(f"is Idle: {is_idle}, time: {ctime - self.start_time}")
+        
+        MATCH_TIME_LIMIT = 97
+        if ctime - self.robot.start_time > MATCH_TIME_LIMIT:
+            self.robot.comm.stop()
+            logging.critical("Time limit Stopping")
+            return py_trees.common.Status.FAILURE
         if self.robot.USE_LIDAR:
             if self.is_obstacle():
                 self.is_stopped = True
@@ -177,17 +187,28 @@ class Action(py_trees.behaviour.Behaviour):
                 return py_trees.common.Status.RUNNING
             elif self.is_stopped:
                 self.robot.comm.resume()
+                self.robot.comm.resume()
+                self.robot.comm.resume()
                 logger.info("Lidar: Obstacle cleared, resuming action")
                 self.is_stopped = False
-                self.start_time = time.time()  # reset timer after obstacle is cleared
+                self.start_time = ctime  # reset timer after obstacle is cleared
                 return py_trees.common.Status.RUNNING
-
-        if time.time() - self.start_time > self.robot.action_timeout:
-            logger.info(f"{self.__class__.__name__} action timeout in {time.time() - self.start_time:.2f}s")
+        if ctime - self.start_time > self.robot.action_timeout:
+            logger.info(f"{self.__class__.__name__} action timeout in {ctime - self.start_time:.2f}s")
             return py_trees.common.Status.FAILURE
-        if self.robot.is_idle() and time.time() - self.start_time > self.robot.idle_time_buffer:
-            logger.info(f"{self.__class__.__name__} finished action")
-            time.sleep(2)
+
+        if ctime - self.start_time < self.robot.idle_time_buffer:
+            logger.info(f"{self.__class__.__name__} is idle, waiting for idle_time_buffer {ctime - self.start_time:.2f}s")
+            return py_trees.common.Status.RUNNING
+
+        if is_idle :
+            if self.start_time_end_buffer is None:
+                logger.info(f"{self.__class__.__name__} finished action")
+                self.start_time_end_buffer = ctime
+                return py_trees.common.Status.RUNNING
+            elif ctime - self.start_time_end_buffer < self.robot.end_time_buffer:
+                logger.info(f"{self.__class__.__name__} is waiting for end_time_buffer {ctime - self.start_time_end_buffer:.2f}s")
+                return py_trees.common.Status.RUNNING
             return py_trees.common.Status.SUCCESS
         return py_trees.common.Status.RUNNING
     
@@ -200,7 +221,7 @@ class Rotate(Action):
 
     def initialise(self):
         super().initialise()
-        self.id=self.robot.start_rotate(self.angle)
+        self.id = self.robot.start_rotate(self.angle)
                
 class Move(Action):
     """Move robot forward by a given distance"""
@@ -211,7 +232,7 @@ class Move(Action):
 
     def initialise(self):
         super().initialise()
-        self.id=self.robot.start_move(self.distance)
+        self.id = self.robot.start_move(self.distance)
 
 
 class TopBarrier(Action):
@@ -221,7 +242,7 @@ class TopBarrier(Action):
 
     def initialise(self):
         super().initialise()
-        self.id=self.robot.top_barrier(self.state)
+        self.id = self.robot.top_barrier(self.state)
 
 
 class BottomBarrier(Action):
@@ -261,6 +282,7 @@ class Start(py_trees.behaviour.Behaviour):
         self.robot = robot
 
     def update(self):
+        self.robot.stop()
         tirette = self.robot.comm.isTierettePulled()
         if tirette:
             self.robot.start_time = time.time()

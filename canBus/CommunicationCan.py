@@ -50,6 +50,7 @@ class CommunicationCan(Comm):
         try:
             response = self.bus.request(command, *args)
             if response is not None:
+                logger.debug(f"response: {repr(response)}")
                 return response
 
             logger.error("CAN ERROR: Empty response for: %s", command)
@@ -98,13 +99,13 @@ class CommunicationCan(Comm):
         if self.bus.reg != reg_asserv:
             self.switchBus("asserv")
         self.bus.send("pause")
-        logger.debug("CAN: Pause command sent")
+        logger.info("CAN: Pause command sent")
 
     def resume(self):
         if self.bus.reg != reg_asserv:
             self.switchBus("asserv")
         self.bus.send("resume")
-        logger.debug("CAN: Resume command sent")
+        logger.info("CAN: Resume command sent")
 
 
     def checkCamera(self, side ):
@@ -139,7 +140,10 @@ class CommunicationCan(Comm):
         if self.bus.reg != reg_asserv:
             self.switchBus("asserv")
         logger.debug("CAN: is ildle?: %s", id)
-        return self._safe_request("is_idle",default=False)
+        is_debug = self._safe_request("is_idle",default=False)
+        if len(is_debug) > 0:
+            return is_debug[0]
+        return False
 
     
     def get_position(self):

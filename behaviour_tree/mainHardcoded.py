@@ -112,9 +112,8 @@ if __name__ == "__main__":
     TIMEGOBACK = 80  # seconds until robot should start going back to start position
     USELIDAR = True
     USECAMERA = False
-    ILDE_TIME_BUFFER = (
-        2  # seconds minimum to wait after each action before starting the next one
-    )
+    ILDE_TIME_BUFFER = 0.2 # seconds minimum to wait after each action before starting the next one
+    END_TIME_BUFFER = 0 # seconds minimum to wait after finishing an action before considering the next one
     ACTION_TIMEOUT = 1000000  # seconds to wait before considering an action failed
 
     logger = logging.getLogger(__name__)
@@ -138,6 +137,7 @@ if __name__ == "__main__":
         pos=START_POS,
         comm=comm,
         idle_time_buffer=ILDE_TIME_BUFFER,
+        end_time_buffer=END_TIME_BUFFER,
         action_timeout=ACTION_TIMEOUT,
         USE_GRAPH=False,
         USELIDAR=USELIDAR,
