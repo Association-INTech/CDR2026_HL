@@ -30,7 +30,7 @@ class Strat02534:
 
         strat += [
             f"rotate {gauche}",
-            "move 1120",
+            "move 1170",
             f"rotate {droite}",
             "move 350",
             f"rotate {droite}",
@@ -70,7 +70,7 @@ class Strat02534:
             f"rotate {droite}",
             "move 860",
             f"rotate {gauche}",
-            "move 1200",
+            "move 1250",
             f"rotate {droite}",
             "move 700",
         ]
