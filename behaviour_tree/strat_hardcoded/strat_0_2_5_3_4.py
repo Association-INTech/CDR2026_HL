@@ -42,7 +42,7 @@ class Strat02534:
         else:
             strat += [f"move {move_nb_2}", f"move -{move_nb_2}"]
 
-        move_nb_5 = 360
+        move_nb_5 = 340
         if nb_5 > 0:
             strat += [f"move -{move_nb_5 + nb_5}", f"move {move_nb_5 + nb_5}"]
         else:
@@ -68,9 +68,9 @@ class Strat02534:
 
         strat += [
             f"rotate {droite}",
-            "move 860",
+            "move 880",
             f"rotate {gauche}",
-            "move 1300",
+            "move 1350",
             f"rotate {droite}",
             "move 700",
         ]
