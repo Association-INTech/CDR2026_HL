@@ -19,7 +19,7 @@ class Strat02534:
         nb_4 = nb_list[4] * 50 - 20
         nb_5 = nb_list[5] * 50 - 20
 
-        move_nb_zero = 510
+        move_nb_zero = 500
         if nb_0 > 0:
             strat = [
                 f"move {move_nb_zero + nb_0}",
